@@ -20,8 +20,21 @@ governing permissions and limitations under the License.
 	<title>Helix Markdown Preview</title>
 </head>
 <body>
+	<div class="markdown-head">
+		<form>
+			<label for="zoom">Zoom:</label>
+			<select class="form-select" name="zoom">
+				<option value="1.0">100%</option>
+				<option value="0.9">90%</option>
+				<option value="0.8">80%</option>
+				<option value="0.7" selected>70%</option>
+				<option value="0.6">60%</option>
+				<option value="0.5">50%</option>
+			</select>
+		</form>
+	</div>
 	<div class="markdown-body">
-		<div id="Helix_Markdown_Preview" class="expandable unchanged js-expandable rich-diff-level-zero">Initializing...</div>
+		<div id="Helix_Markdown_Preview" class="expandable unchanged js-expandable rich-diff-level-zero"></div>
 	</div>
 </body>
 </html>

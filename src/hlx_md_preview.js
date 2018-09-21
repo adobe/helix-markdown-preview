@@ -60,13 +60,21 @@ var MarkdownPreview = function() {
 	 * @return window The popup window
 	 */
 	var createPopup = function() {
-		var w = 300; // TODO: make configurable in extension options
-		var h = root.innerHeight;
 		var t = 100; // TODO: find out correct y position of window
+		var w = 600; // TODO: make configurable in extension options
+		var h = root.innerHeight ? root.innerheight : root.screen.height-t;
 		var l = root.screen.width-w;
 		var popup = root.open("preview.html", getID(), "width="+w+",height="+h+",top="+t+",left="+l);
 		// TODO: add close listener to parent window and close popup if tab is closed
 		setTimeout(function() {
+			// set initial content
+			popup.document.getElementById(getID()).innerHTML = MarkdownPreview.INIT_HTML;
+			// set zoom
+			popup.document.getElementById(getID()).style.zoom = MarkdownPreview.DEFAULT_ZOOM; // TODO: make configurable
+			popup.document.getElementsByTagName("select")[0].addEventListener("change", function() {
+				popup.document.getElementById(getID()).style.zoom = this.value;
+			})
+			// clean up when popup unloads
 			popup.addEventListener("unload", function(e){
 				removePopup();
 			});
@@ -152,9 +160,6 @@ var MarkdownPreview = function() {
 				} catch (e) {
 					//console.log("Error while retrieving markdown from DOM", e);
 				}
-			} else {
-				// github appears to be in presentation or preview mode
-				return "# Markdown File in Presentation or Preview Mode\nSwitch to edit or raw mode to display markdown preview";
 			}
 		}
 		return DEFAULT_MD;
@@ -183,6 +188,20 @@ var MarkdownPreview = function() {
 		 * @static
 		 */
 		DEFAULT_MD: "\n",
+
+		/**
+		 * The default zoom factor to use for the preview.
+		 * @type number
+		 * @static
+		 */
+		DEFAULT_ZOOM: 0.7,
+
+		/**
+		 * The HTML to display while loading the actual preview.
+		 * @type string
+		 * @static
+		 */
+		INIT_HTML: "<p>Initializing...</p>",
 
 		/**
 		 * Initializes the markdown preview for a new tab
