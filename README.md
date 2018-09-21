@@ -23,7 +23,7 @@ Stay tuned...
 
 ### Preview as you type
 1. Navigate to a markdown (*.md) file on `github.com`.
-2. Switch to edit mode. Notice that the Helix icon is colored now.<br />
+2. Switch to edit mode. Notice that the Helix icon is colored now:<br />
 ![Extension icon enabled](src/images/helix_logo_16.png)
 3. Click the Helix icon in the tool bar.
 4. A popup opens, showing the rendered markdown.
@@ -31,7 +31,7 @@ Stay tuned...
 
 ### Preview static file
 1. Navigate to a markdown (*.md) file on `github.com`.
-2. Click the _Raw_ button. Notice that the Helix icon is colored now.
+2. Click the _Raw_ button. Notice that the Helix icon is colored now:<br />
 ![Extension icon enabled](src/images/helix_logo_16.png)
 3. Click the Helix icon in the tool bar.
 4. A popup opens, showing the rendered markdown.
