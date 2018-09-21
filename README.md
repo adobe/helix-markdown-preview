@@ -4,8 +4,8 @@ Google Chrome Extension to preview markdown files while editing.
 ## Installation
 
 ### Developer mode
-1. Clone this repository
-2. Open Chrome and go to chrome://extensions
+1. Clone this repository to your local disk
+2. Open Chrome and go to `chrome://extensions`
 3. Turn on _Developer mode_ at the top right of the header bar<br />
 ![Developer mode](install_developer_mode.png)
 4. Click the _Load unpacked_ button in the action bar<br />
