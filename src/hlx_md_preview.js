@@ -24,82 +24,93 @@ var MarkdownPreview = function() {
 
 	/**
 	 * The ID of the current tab.
-	 * @private
 	 * @type number
 	 */
-	var activeTab;
-	
+	var activeTab = 0;
+
 	/**
 	 * The ID of the active poll interval.
-	 * @private
 	 * @type number
 	 */
-	var activePoll;
-	
+	var activePoll = 0;
+
+	/**
+	 * The configuration object with both default and/or custom settings.
+	 * @type object
+	 */
+	var config;
+
+	/**
+	 * The popup window holding the preview window.
+	 * @type window
+	 */
+	var popup;
+
+	/**
+	 * The preview window.
+	 * @type window
+	 */
+	var previewWin;
+
 	/**
 	 * Returns the #ID.
-	 * @private
 	 * @return string The ID
 	 */
 	var getID = function() {
 		return MarkdownPreview.ID;
 	};
 
-	/**
-	 * Returns an existing popup window for the preview
-	 * @private
-	 * @return window The popup window or <code>null</code>
-	 */
-	var getPopup = function() {
-		return root[getID()];
-	};
+	// background methods
 
 	/**
 	 * Returns a new popup window for the preview
-	 * @private
-	 * @return window The popup window
+	 * @return object This object
 	 */
 	var createPopup = function() {
-		var t = 100; // TODO: find out correct y position of window
-		var w = 600; // TODO: make configurable in extension options
+		var t = 100; // TODO: find out correct y position of tab or window
+		var w = config.popupWidth;
 		var h = root.innerHeight ? root.innerheight : root.screen.height-t;
-		var l = root.screen.width-w;
-		var popup = root.open("preview.html", getID(), "width="+w+",height="+h+",top="+t+",left="+l);
+		var l = (config.popupPosition == "left") ? 0 : root.screen.width-w;
+		var win = root.open("popup.html", getID(), "width="+w+",height="+h+",top="+t+",left="+l);
 		// TODO: add close listener to parent window and close popup if tab is closed
-		setTimeout(function() {
+		var prepPreviewWin = function() {
+			previewWin = win.document.getElementById(getID()+"_iframe").contentWindow;
 			// set initial content
-			popup.document.getElementById(getID()).innerHTML = MarkdownPreview.INIT_HTML;
+			previewWin.document.getElementById(getID()).innerHTML = "<p>Initializing...</p>"; // TODO: i18n
 			// set zoom
-			popup.document.getElementById(getID()).style.zoom = MarkdownPreview.DEFAULT_ZOOM; // TODO: make configurable
-			popup.document.getElementsByTagName("select")[0].addEventListener("change", function() {
-				popup.document.getElementById(getID()).style.zoom = this.value;
-			})
-			// clean up when popup unloads
-			popup.addEventListener("unload", function(e){
+			previewWin.document.body.style.zoom = config.popupZoom;
+			var zoomCtl = win.document.getElementById(getID()+"_zoom");
+			zoomCtl.value = config.popupZoom;
+			zoomCtl.addEventListener("change", function() {
+				previewWin.document.body.style.zoom = this.value;
+			});
+			// remove this load listener again
+			win.removeEventListener("load", prepPreviewWin);
+			// clean up as soon as popup closes
+			win.addEventListener("unload", function(e){
 				removePopup();
 			});
-		}, 500);
-		root[getID()] = popup;
-		return popup;
+		};
+		win.addEventListener('load', prepPreviewWin);
+		popup = win;
+		return this;
 	};
 
 	/**
-	 * Removes the popup window for the preview and cleanUps the extension.
-	 * @private
+	 * Removes the popup window for the preview and resets the extension.
 	 * @return object This object
 	 */
 	var removePopup = function() {
-		var popup = getPopup();
 		if (popup) {
 			popup.close();
 		}
-		root[getID()] = null;
+		popup = null;
+		previewWin = null;
 		return cleanUp();
 	};
 
 	/**
 	 * Resets the markdown preview.
-	 * @private
 	 * @return object This object
 	 */
 	var cleanUp = function() {
@@ -111,6 +122,26 @@ var MarkdownPreview = function() {
 		return this;
 	};
 	
+	/**
+	 * Loads the configuration. Defaults are taken from #DEFAULT_CONFIG
+	 * @param function callback The function to call when done (optional)
+	 * @return object This object
+	 */
+	var loadConfig = function(callback) {
+		// set defaults
+		config = MarkdownPreview.DEFAULT_CONFIG;
+		// load overrides from custom settings
+		chrome.storage.sync.get(null, function(cfg) {
+			for (var name in cfg) {
+				config[name] = cfg[name];
+			}
+			if (callback) callback(config);
+		});
+		return this;
+	};
+
+	// content-side methods
+
 	/**
 	 * Checks if the markdown file is static (raw).
 	 * @return boolean <code>true</code> if markdown file is static, else <code>false</code>
@@ -128,6 +159,19 @@ var MarkdownPreview = function() {
 		url = url.substring(0, url.lastIndexOf("/")+1);
 		url = url.replace(/\/edit\//,"/raw/");
 		return url;
+	};
+
+	/**
+	 * Retrieves the the path from the current window
+	 * @return string The path
+	 */
+	var getPath = function() {
+		var path = root.location.pathname;
+		var branchCut = path.indexOf("/" + config.gitBranch + "/");
+		if (branchCut > 0) {
+			path = path.substring(branchCut+config.gitBranch.length+1);
+		}
+		return path;
 	};
 
 	/**
@@ -156,13 +200,13 @@ var MarkdownPreview = function() {
 				// github is in edit mode
 				// retrieve markdown from textarea
 				try {
-					return ta.value ? ta.value : DEFAULT_MD;
+					return ta.value ? ta.value : "\n";
 				} catch (e) {
 					//console.log("Error while retrieving markdown from DOM", e);
 				}
 			}
 		}
-		return DEFAULT_MD;
+		return "\n";
 	};
 
 	// public API
@@ -176,76 +220,114 @@ var MarkdownPreview = function() {
 		ID: "Helix_Markdown_Preview",
 
 		/**
-		 * The default poll interval in milliseconds to request new markdown with.
-		 * @type number
+		 * The default configuration. Go to the Options page to override settings.
+		 * @type object
 		 * @static
 		 */
-		POLL_INTERVAL: 1000,
+		DEFAULT_CONFIG: {
+			"urlFilters": [{
+				hostSuffix: "github.com",
+				pathContains: "/edit/",
+				pathSuffix: ".md"
+			},{
+				hostEquals: "raw.githubusercontent.com",
+				pathSuffix: ".md"
+			}],
+			"gitBranch": "master",
+			"pipelineBaseUrl": null,
+			"pollInterval": 1000,
+			"popupWidth": 600,
+			"popupPosition": "right",
+			"popupZoom": 0.7
+		},
 
 		/**
-		 * The defaut markdown to use if none can be retrieved from the document.
-		 * @type string
-		 * @static
-		 */
-		DEFAULT_MD: "\n",
-
-		/**
-		 * The default zoom factor to use for the preview.
-		 * @type number
-		 * @static
-		 */
-		DEFAULT_ZOOM: 0.7,
-
-		/**
-		 * The HTML to display while loading the actual preview.
-		 * @type string
-		 * @static
-		 */
-		INIT_HTML: "<p>Initializing...</p>",
-
-		/**
-		 * Initializes the markdown preview for a new tab
-		 * @param number tabId The ID of the current tab
-		 * @param boolean popup <code>true</code> if preview window should be launched,
-		 * else <code>false</code>
+		 * Initializes the markdown preview.
+		 * @param function callback The function to call when done (optional)
 		 * @return object This object
 		 */
-		init: function(tabId, popup) {
-			if (popup) {
+		init: function(callback) {
+			loadConfig(function() {
+				if (callback) callback();
+			})
+		},
+
+		/**
+		 * Starts the receiver for markdown preview of the current tab.
+		 * @param number tabId The ID of the current tab
+		 * @param function callback The function to call when done (optional)
+		 * @return object This object
+		 */
+		startReceiver: function(tabId,callback) {
+			this.init(function() {
 				removePopup(); // make sure there is no previous popup around
 				createPopup();
-			} else {
-				cleanUp(); //just clean up
-			}
-			activeTab = tabId; 
+				activeTab = tabId; 
+				if (callback) callback();
+			});
 			return this;
 		},
 
 		/**
-		 * Stores the ID of the currently active poll interval
-		 * @param number id The ID of the currently active poll interval
+		 * Stops the receiver for markdown preview.
 		 * @return object This object
 		 */
-		setPollInterval: function(id) {
-			activePoll = id;
+		stopReceiver: function() {
+			return removePopup();
 		},
 
 		/**
-		 * Assembles the data from the document for #process to consume:<ul>
+		 * Checks if the receiver for markdown preview is active.
+		 * @return boolean <code>true</code> if markdown preview receiver is active, else <code>false</code>
+		 */
+		isReceiverStarted: function() {
+			return (popup != null);
+		},
+
+		/**
+		 * Stores the ID of the currently active poll interval
+		 * @param function func The function to execute while polling
+		 * @return number The ID of the interval
+		 */
+		startPoll: function(func) {
+			return activePoll = setInterval(func, config.pollInterval);
+		},
+
+		/**
+		 * Assembles the data from the document for #process to consume.
+		 * @param number tabId the ID of the current tab.
+		 * @return object The data object:<ul>
 		 * <li>string markdown The markdown</li>
 		 * <li>number tabId The ID of the responding tab</li>
 		 * <li>string baseUrl The URL prefix for relative paths (optional)</li>
+		 * <li>string path The path of the markdown file being displayed</li>
 		 * <li>boolean static <code>true</code> if the page in the tab is static,
 		 *     else <code>false</code> (optional)</li></ul>
-		 * @return object The data object
 		 */
-		assemble: function() {
+		assemble: function(tabId) {
 			return {
 				"markdown": getMarkdown(),
-				"tabId": activeTab,
+				"tabId": tabId,
 				"baseUrl": getBaseUrl(),
+				"path": getPath(),
 				"static": isStatic()
 			}
+		},
+
+		/**
+		 * Returns the preview window.
+		 * @return window The preview window
+		 */
+		getPreviewWindow: function() {
+			return previewWin;
+		},
+
+		/**
+		 * Checks if a Helix Pipeline is configured.
+		 * @return boolean <code>true</code> if pipeline is configured, else <code>false</code>
+		 */
+		hasPipeline: function() {
+			return (config.pipelineBaseUrl != null);
 		},
 
 		/**
@@ -254,6 +336,7 @@ var MarkdownPreview = function() {
 		 * <li>string markdown The markdown</li>
 		 * <li>number tabId The ID of the responding tab</li>
 		 * <li>string baseUrl The URL prefix for relative paths (optional)</li>
+		 * <li>string path The path of the markdown file being displayed</li>
 		 * <li>boolean static <code>true</code> if the page in the tab is static,
 		 *     else <code>false</code> (optional)</li></ul>
 		 * @return object This object
@@ -263,33 +346,42 @@ var MarkdownPreview = function() {
 				console.log("No data, reset");
 				return removePopup();
 			}
-			if (activeTab != data.tabId) {
-				console.log("Tab mismatch, reset",activeTab,data.tabId);
-				return removePopup();
-			}
+			// if (activeTab != data.tabId) {
+			// 	console.log("Tab mismatch, reset",activeTab,data.tabId);
+			// 	return removePopup();
+			// }
 			if (data.static) {
 				console.log("Static file, only process once");
 				cleanUp();
 			}
 			console.log("Processing data from",data.tabId);
-			var popup = getPopup();
-			if (popup) {
-				if (data.baseUrl) {
-					marked.setOptions({
-						baseUrl: data.baseUrl
-					});
-				}
-				var md = marked(data.markdown);
-				setTimeout(function() {
+			if (previewWin) {
+				if (config.pipelineBaseUrl) {
+					var url = config.pipelineBaseUrl;
+					url += data.path;
+					url = url.substring(0, url.lastIndexOf("."));
+					url += ".html";
+					url += "?hlx_cK=" + new Date().getTime();
+					previewWin.location.href = url;
+					console.log("Pipeline mode", url);
+					cleanUp(); // TODO: show live preview without manual refresh
+				} else {
+					console.log("Standalone mode");
+					if (data.baseUrl) {
+						marked.setOptions({
+							baseUrl: data.baseUrl
+						});
+					}
+					var md = marked(data.markdown);
 					try {
-						popup.document.getElementById(getID()).innerHTML = md;
+						previewWin.document.getElementById(getID()).innerHTML = md;
 					} catch (e) {
 						console.log("Error while processing markdown", e);
 					}
-				}, 500);
+				}
 			} else {
-				console.log("Popup window not found, clean up");
-				return cleanUp();
+				console.log("Preview window not found, clean up");
+				return removePopup();
 			}
 			return this;
 		}

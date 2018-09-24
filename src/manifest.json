@@ -2,6 +2,7 @@
 	"manifest_version": 2,
 	"name": "Helix Markdown Preview",
 	"version": "0.1",
+	"options_page": "options.html",
 /*	"default_locale": "en",*/
 	"description": "Live preview of markdown files while authoring.",
 	"permissions": [

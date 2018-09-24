@@ -21,7 +21,7 @@ var hmdp = Helix.MarkdownPreview;
 
 // upon installation, define where the extension should be active
 chrome.runtime.onInstalled.addListener(function(details) {
-	// TODO: make rules configurable
+	// TODO: use rules from configuration
 	chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
 		chrome.declarativeContent.onPageChanged.addRules([{
 			conditions: [
@@ -48,19 +48,24 @@ chrome.runtime.onInstalled.addListener(function(details) {
 // when the page action is clicked, initiate markdown preview
 chrome.pageAction.onClicked.addListener(function(tab) {
 	console.log("Action triggered on", tab.url);
-	hmdp.init(tab.id, true);
-	// load content script inside the tab and start polling
-	chrome.tabs.executeScript(tab.id, {
-		"file": "hlx_md_preview.js"
-	}, function() {
-		chrome.tabs.executeScript(tab.id, {
-			"file": "content.js"
-		}, function() {
-			hmdp.setPollInterval(setInterval(function() {
-				console.log("Requesting markdown from", tab.id);
-				chrome.tabs.sendMessage(tab.id, {"id": hmdp.ID, "tabId":tab.id}, 
-					hmdp.process);
-			}, hmdp.POLL_INTERVAL)); // TODO: make interval configurable
+	if (hmdp.isReceiverStarted()) {
+		hmdp.stopReceiver();
+	} else {
+		hmdp.startReceiver(tab.id, function() {
+			// load content scripts inside the tab
+			chrome.tabs.executeScript(tab.id, {
+				"file": "hlx_md_preview.js"
+			}, function() {
+				chrome.tabs.executeScript(tab.id, {
+					"file": "content.js"
+				}, function() {
+					// start polling
+					hmdp.startPoll(function() {
+						console.log("Requesting markdown from", tab.id);
+						chrome.tabs.sendMessage(tab.id, {"id": hmdp.ID, "tabId":tab.id}, hmdp.process);
+					});
+				});
+			});
 		});
-	});
+	}
 });

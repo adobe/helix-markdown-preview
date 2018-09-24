@@ -19,12 +19,12 @@ if (typeof Helix == "undefined" || typeof Helix.MarkdownPreview == "undefined") 
 // set shorthand
 var hmdp = Helix.MarkdownPreview;
 
-// listen for messages
-chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
-	//console.log("message received",msg);
-	hmdp.init(msg.tabId);
-	if (msg.id == hmdp.ID) {
-		//console.log(msg.tabId, "sending markdown")
-		sendResponse(hmdp.assemble());
-	}
+hmdp.init(function() {
+	// start listening for messages
+	chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
+		if (msg.id == hmdp.ID) {
+			//console.log(msg.tabId, "sending markdown")
+			sendResponse(hmdp.assemble(msg.tabId));
+		}
+	});
 });
