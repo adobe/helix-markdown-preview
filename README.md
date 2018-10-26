@@ -21,7 +21,7 @@ Stay tuned...
 
 ## Usage
 
-### Preview as you type
+### Preview as you type (stand-alone mode only for now)
 1. Navigate to a markdown (*.md) file on `github.com`.
 2. Switch to edit mode. Notice that the Helix icon is colored now:<br />
 ![Extension icon enabled](src/images/helix_logo_16.png)
@@ -35,6 +35,11 @@ Stay tuned...
 ![Extension icon enabled](src/images/helix_logo_16.png)
 3. Click the Helix icon in the tool bar.
 4. A popup opens, showing the rendered markdown.
+
+## Helix Configuration
+1. Right-click the Helix icon and select 'Options'
+2. Click checkbox to use Helix rendering
+3. Provide the base URL of your Helix instance (e.g. 'http://localhost:3000')
 
 ## 3rd party dependencies
 
