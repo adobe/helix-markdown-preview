@@ -38,10 +38,11 @@ function setStatus(key, msg, cls) {
 
 // Saves option to chrome.storage
 function saveOption(evt) {
+	var obj = {};
 	var elem = evt.target;
 	var key = getStorageKey(elem.id);
-	var obj = {};
-	obj[key] = elem.value;
+	var value = elem.type == "checkbox" ? elem.checked : elem.value;
+	obj[key] = value;
 	chrome.storage.sync.set(obj, function() {
 		// Update status to let user know option was saved.
 		var msg = "Saved";
@@ -71,18 +72,21 @@ function resetButtonAction() {
 	}
 }
 
+function toggleElements(elements, show) {
+	elements.forEach(function(elem, id) {
+		if (id == 0) return; //skip first one
+		elem.style.display = show ? "block" : "none";
+	});
+}
+
 // Populate form using the preferences stored in chrome.storage.
 function populateOptions() {
 	var i = 0;
 	var keys = [];
 	var fields = [];
-	var forms = document.getElementsByTagName("form");
-	for (i=0; i < forms.length; i++) {
-		var elem = forms[i].elements[0];
-		if (elem.tagName.toLowerCase() != "input" && 
-			elem.tagName.toLowerCase() != "select") {
-			continue;
-		}
+	var inputs = document.getElementsByTagName("input");
+	for (i=0; i < inputs.length; i++) {
+		var elem = inputs[i];
 		var key = getStorageKey(elem.id);
 		if (key) {
 			keys.push(key);
@@ -94,10 +98,12 @@ function populateOptions() {
 		//console.log("custom settings", res);
 		for (i=0; i < keys.length; i++) {
 			var key = keys[i];
+			if (fields[i].type == "checkbox") {
+				fields[i].checked = res[key];
+			}
 			fields[i].value = res[key] ? res[key] : "";
 		}
 	});
-	
 	// add change listeners to form fields
 	for (i=0; i < fields.length; i++) {
 		fields[i].addEventListener("change", saveOption);
@@ -108,6 +114,28 @@ function populateOptions() {
 		var button = buttons[i];
 		button.addEventListener("click", window[button.id + "Action"]);
 	}
+	// gather helix fields and sections
+	var helixFields = fields.filter(function(elem) {
+		return elem.id.startsWith("helix");
+	});
+	var helixSections = [];
+	helixFields.forEach(function (field) {
+		helixSections.push(document.getElementById(
+			getStorageKey(field.id)));
+	});
+	// toggle helix sections based on checkbox value
+	setTimeout(function() {
+		toggleElements(helixSections, helixFields[0].checked);
+	}, 100);
+	// add change listener to helix checkbox
+	helixFields.filter(function(elem) {
+		return elem.type == "checkbox";
+	})[0].addEventListener("change", function() {
+		toggleElements(helixSections, this.checked);
+		// helixFields.forEach(function(field) {
+		// 	field.disabled = !this.checked;
+		// });
+	});
 }
 
 document.addEventListener('DOMContentLoaded', populateOptions);

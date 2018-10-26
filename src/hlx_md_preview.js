@@ -62,6 +62,22 @@ var MarkdownPreview = function() {
 
 	// background methods
 
+	var enableZoom = function() {
+		if (!popup || !previewWin) return;
+		var zoomCtl = popup.document.getElementById(getID()+"_zoom");
+		zoomCtl.value = config.popupZoom;
+		zoomCtl.addEventListener("change", function() {
+			previewWin.document.body.style.zoom = this.value;
+		});
+		previewWin.document.body.style.zoom = config.popupZoom;
+	};
+
+	var disableZoom = function () {
+		if (!popup) return;
+		var zoomCtl = popup.document.getElementById(getID()+"_zoom");
+		zoomCtl.disabled = true;
+	};
+
 	/**
 	 * Returns a new popup window for the preview
 	 * @return object This object
@@ -77,19 +93,13 @@ var MarkdownPreview = function() {
 			previewWin = win.document.getElementById(getID()+"_iframe").contentWindow;
 			// set initial content
 			previewWin.document.getElementById(getID()).innerHTML = "<p>Initializing...</p>"; // TODO: i18n
-			// set zoom
-			previewWin.document.body.style.zoom = config.popupZoom;
-			var zoomCtl = win.document.getElementById(getID()+"_zoom");
-			zoomCtl.value = config.popupZoom;
-			zoomCtl.addEventListener("change", function() {
-				previewWin.document.body.style.zoom = this.value;
-			});
 			// remove this load listener again
 			win.removeEventListener("load", prepPreviewWin);
 			// clean up as soon as popup closes
 			win.addEventListener("unload", function(e){
 				removePopup();
 			});
+			enableZoom();
 		};
 		win.addEventListener('load', prepPreviewWin);
 		popup = win;
@@ -137,7 +147,24 @@ var MarkdownPreview = function() {
 			}
 			if (callback) callback(config);
 		});
+		//console.log(config);
 		return this;
+	};
+
+	/**
+	 * Returns the Helix URL if path is a markdown file and Helix is configured to be used.
+	 * @param string path The path of the markdown file
+	 * @return string The Helix URL or an empty <code>string</code>
+	 */
+	var getHelixUrl = function(path) {
+		if (!config.helixRendering || !config.helixBaseUrl || !path || 
+			!path.toLowerCase().endsWith(".md")) {
+			return "";
+		}
+		var url = config.helixBaseUrl;
+		url += path.replace(/\.md/i, ".html");
+		url += "?hlx_cK=" + new Date().getTime();
+		return url;
 	};
 
 	// content-side methods
@@ -151,7 +178,7 @@ var MarkdownPreview = function() {
 	};
 
 	/**
-	 * Retrieves the base URL for relative paths from the current window
+	 * Retrieves the base URL for relative paths from the current window.
 	 * @return string The base URL
 	 */
 	var getBaseUrl = function() {
@@ -162,7 +189,7 @@ var MarkdownPreview = function() {
 	};
 
 	/**
-	 * Retrieves the the path from the current window
+	 * Retrieves the path from the current window.
 	 * @return string The path
 	 */
 	var getPath = function() {
@@ -234,7 +261,8 @@ var MarkdownPreview = function() {
 				pathSuffix: ".md"
 			}],
 			"gitBranch": "master",
-			"pipelineBaseUrl": null,
+			"helixRendering": false,
+			"helixBaseUrl": null,
 			"pollInterval": 1000,
 			"popupWidth": 600,
 			"popupPosition": "right",
@@ -323,14 +351,6 @@ var MarkdownPreview = function() {
 		},
 
 		/**
-		 * Checks if a Helix Pipeline is configured.
-		 * @return boolean <code>true</code> if pipeline is configured, else <code>false</code>
-		 */
-		hasPipeline: function() {
-			return (config.pipelineBaseUrl != null);
-		},
-
-		/**
 		 * Processes the data and feeds the markdown to the preview window.
 		 * @param object data The data from the document:<ul>
 		 * <li>string markdown The markdown</li>
@@ -356,14 +376,11 @@ var MarkdownPreview = function() {
 			}
 			console.log("Processing data from",data.tabId);
 			if (previewWin) {
-				if (config.pipelineBaseUrl) {
-					var url = config.pipelineBaseUrl;
-					url += data.path;
-					url = url.substring(0, url.lastIndexOf("."));
-					url += ".html";
-					url += "?hlx_cK=" + new Date().getTime();
-					previewWin.location.href = url;
-					console.log("Pipeline mode", url);
+				var helixUrl = getHelixUrl(data.path);
+				if (helixUrl) {
+					console.log("Helix mode");
+					previewWin.location.href = helixUrl;
+					// disableZoom();
 					cleanUp(); // TODO: show live preview without manual refresh
 				} else {
 					console.log("Standalone mode");

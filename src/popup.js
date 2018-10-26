@@ -12,3 +12,5 @@
 
 'use strict';
 
+//set shorthand
+var hmdp = window.opener.hmdp;

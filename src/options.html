@@ -88,88 +88,77 @@ governing permissions and limitations under the License.
 		</section>
 -->
 
-		<section id="pipelineBaseUrl">
-			<h3>Pipeline Base URL</h3>
-			<form id="pipelineBaseUrlForm">
-				<div>
-					<div>
-						<p><input id="pipelineBaseUrlInput" type="text" placeholder="e.g. https://localhost:3000/"></p>
-						<p class="status" id="pipelineBaseUrlStatus"></p>
-					</div>
-					<div class="help">
-						<p>Set to use the Helix Pipeline instead of standalone markdown rendering.
-							More about the <a href="https://github.com/adobe/project-helix" target="_blank">Helix Pipeline</a>.</p>
-					</div>
-				</div>
-			</form>
+		<section id="helixRendering">
+			<div>
+				<p><input id="helixRenderingInput" type="checkbox" value="yes"> Use Helix for Markdown rendering.
+				<span class="status" id="helixRenderingStatus"></p>
+			</div>
+			<div class="help">
+				<p>Standalone client-side Markdown rendering will be used by default. More about <a href="https://github.com/adobe/project-helix" target="_blank">Helix</a>.</p>
+			</div>
 		</section>
 
-		<section id="pollInterval">
-			<h3>Refresh Interval</h3>
-			<form id="pollIntervalForm">
-				<div>
-					<div>
-						<p><input id="pollIntervalInput" type="number"></p>
-						<p class="status" id="pollIntervalStatus"></p>
-					</div>
-					<div class="help">
-						<p>Refresh interval in milliseconds (defaults to 1000).<br />
-						<span class="warn">Caution: Lower values may cause issues.</span></p>
-					</div>
-				</div>
-			</form>
+		<section id="helixBaseUrl" style="display:none">
+			<h3>Base URL</h3>
+			<div>
+				<p><input id="helixBaseUrlInput" type="text" placeholder="e.g. https://localhost:3000/"></p>
+				<p class="status" id="helixBaseUrlStatus"></p>
+			</div>
+			<div class="help">
+				<p>The URL prefix to use for Helix rendering.</p>
+			</div>
 		</section>
 
 		<div class="settings-separator"></div>
 
 		<h2 class="settings-section-title">Preview Window</h2>
 
+		<section id="pollInterval">
+			<h3>Refresh Interval</h3>
+			<div>
+				<p><input id="pollIntervalInput" type="number"></p>
+				<p class="status" id="pollIntervalStatus"></p>
+			</div>
+			<div class="help">
+				<p>Refresh interval in milliseconds (defaults to 1000).<br />
+				<span class="warn">Caution: Lower values may cause issues.</span></p>
+			</div>
+		</section>
+
 		<section id="popupWidth">
 			<h3>Width</h3>
-			<form id="popupWidthForm">
-				<div>
-					<div>
-						<p><input id="popupWidthInput" type="number"></p>
-						<p class="status" id="popupWidthStatus"></p>
-					</div>
-					<div class="help">
-						<p>Width of preview window in pixels (defaults to 600).</p>
-					</div>
-				</div>
-			</form>
+			<div>
+				<p><input id="popupWidthInput" type="number"></p>
+				<p class="status" id="popupWidthStatus"></p>
+			</div>
+			<div class="help">
+				<p>Width of preview window in pixels (defaults to 600).</p>
+			</div>
 		</section>
 
 		<section id="popupZoom">
-			<h3>Zoom</h3>
-			<form id="popupZoomForm">
-				<div>
-					<div>
-						<p><input id="popupZoomInput" type="number"></p>
-						<p class="status" id="popupZoomStatus"></p>
-					</div>
-					<div class="help">
-						<p>Zoom factor to use inside the preview window (defaults to 0.7).</p>
-					</div>
-				</div>
-			</form>
+			<h3>Zoom Factor</h3>
+			<div>
+				<p><input id="popupZoomInput" type="number"></p>
+				<p class="status" id="popupZoomStatus"></p>
+			</div>
+			<div class="help">
+				<p>Zoom factor to use inside the preview window (defaults to 0.7).</p>
+			</div>
 		</section>
 
 		<section id="popupPosition">
 			<h3>Position</h3>
-			<form id="popupPositionForm">
-				<div>
-					<div>
-						<p><select id="popupPositionInput">
-							<option value="left">Left</option>
-							<option value="right" selected>Right</option>
-						</select></p>
-						<p class="status" id="popupPositionStatus"></p>
-					</div>
-					<div class="help">
-						<p>Position of the preview window on the screen (defaults to right).</p>
-					</div>
-				</div>
-			</form>
+			<div>
+				<p><select id="popupPositionInput">
+					<option value="left">Left</option>
+					<option value="right" selected>Right</option>
+				</select></p>
+				<p class="status" id="popupPositionStatus"></p>
+			</div>
+			<div class="help">
+				<p>Position of the preview window on the screen (defaults to right).</p>
+			</div>
 		</section>
 
 		<!-- <section id="keyboardCommandsDiv">
@@ -182,20 +171,16 @@ governing permissions and limitations under the License.
 
 		<!-- <section id="language">
 			<h3>Language</h3>
-			<form id="languageForm">
-				<div>
-					<div>
-						<p><select id="languageInput">
-							<option value="en" selected>English</option>
-							<option value="de">German</option>
-							<option value="fr">French</option>
-							<option value="es">Spanish</option>
-							<option value="zh">Chinese</option>
-							<option value="jp">Japanese</option>
-						</select></p>
-					</div>
-				</div>
-			</form>
+			<div>
+				<p><select id="languageInput">
+					<option value="en" selected>English</option>
+					<option value="de">German</option>
+					<option value="fr">French</option>
+					<option value="es">Spanish</option>
+					<option value="zh">Chinese</option>
+					<option value="jp">Japanese</option>
+				</select></p>
+			</div>
 		</section> -->
 
 		<div class="settings-separator"></div>
@@ -211,18 +196,15 @@ governing permissions and limitations under the License.
 		<h2 class="settings-section-title">Factory Defaults</h2>
 
 		<section id="reset">
-			<form id="resetForm">
 			<div>
-				<div>
-					<p><button id="resetButton">Reset options</button></p>
-					<p class="status" id="resetStatus"></p>
-				</div>
-				<div class="help warn">
-					<p>Caution: This action will erase all custom settings!</p>
-				</div>
+				<p><button id="resetButton">Reset options</button></p>
+				<p class="status" id="resetStatus"></p>
 			</div>
-			</form>
+			<div class="help warn">
+				<p>Caution: This action will erase all custom settings!</p>
+			</div>
 		</section>
+
 		<script type="text/javascript" src="options.js"></script>
 </body>
 </html>

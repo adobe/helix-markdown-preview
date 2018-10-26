@@ -229,6 +229,10 @@ input[type=number] {
 	width:80px;
 }
 
+input[disabled] {
+	background-color:#EEE;
+}
+
 textarea#urlFiltersInput {
 	min-height:200px;
 	resize:vertical;
@@ -250,12 +254,12 @@ textarea#urlFiltersInput {
 	color: #0C0;
 }
 
-section > form > div > div {
+section > div {
 	width:340px;
 	display:inline-block;
 	vertical-align:top;
 }
 
-section > form > div > div:first-of-type {
+section > div:first-of-type {
 	margin-right:20px;
 }
