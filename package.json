@@ -1,0 +1,21 @@
+{
+  "name": "helix-markdown-preview",
+  "version": "0.1.0",
+  "description": "",
+  "main": "background.js",
+  "scripts": {
+    "test": "nyc nyc --reporter=lcov mocha --exit",
+    "lint": "npx eslint ."
+  },
+  "repository": "https://github.com/rofe/helix-markdown-preview",
+  "author": "",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "eslint": "^5.15.3",
+    "eslint-config-airbnb": "^17.1.0",
+    "eslint-plugin-header": "^3.0.0",
+    "eslint-plugin-import": "^2.16.0",
+    "eslint-plugin-jsx-a11y": "^6.1.1",
+    "eslint-plugin-react": "^7.11.0"
+  }
+}

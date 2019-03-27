@@ -11,8 +11,9 @@
 	],
 	"background": {
 		"scripts": [
-			"marked.min.js",
-			"hlx_md_preview.js",
+			"./lib/marked.min.js",
+			"./lib/diffDOM.min.js",
+			"HelixMarkdownPreview.js",
 			"background.js"
 		],
 		"persistent": false

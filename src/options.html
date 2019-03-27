@@ -121,18 +121,29 @@ governing permissions and limitations under the License.
 			</div>
 			<div class="help">
 				<p>Refresh interval in milliseconds (defaults to 1000).<br />
-				<span class="warn">Caution: Lower values may cause issues.</span></p>
+				<span class="warn">Caution: Lower values may cause performance issues.</span></p>
 			</div>
 		</section>
 
 		<section id="popupWidth">
-			<h3>Width</h3>
+      <h3>Width</h3>
+      <div>
+        <p><input id="popupWidthInput" type="number"></p>
+        <p class="status" id="popupWidthStatus"></p>
+      </div>
+      <div class="help">
+        <p>Fixed width of preview window in pixels (by default, it uses the remaining available screen width, or the minimum width).</p>
+      </div>
+    </section>
+  
+    <section id="popupMinWidth">
+			<h3>Minimum Width</h3>
 			<div>
-				<p><input id="popupWidthInput" type="number"></p>
-				<p class="status" id="popupWidthStatus"></p>
+				<p><input id="popupMinWidthInput" type="number"></p>
+				<p class="status" id="popupMinWidthStatus"></p>
 			</div>
 			<div class="help">
-				<p>Width of preview window in pixels (defaults to 600).</p>
+				<p>Minimum width of preview window in pixels (defaults to 500).</p>
 			</div>
 		</section>
 
@@ -143,7 +154,7 @@ governing permissions and limitations under the License.
 				<p class="status" id="popupZoomStatus"></p>
 			</div>
 			<div class="help">
-				<p>Zoom factor to use inside the preview window (defaults to 0.7).</p>
+				<p>Zoom factor to use inside the preview window (by default, the width of the preview window influences the zoom factor).</p>
 			</div>
 		</section>
 

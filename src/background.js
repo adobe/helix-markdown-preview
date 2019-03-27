@@ -13,59 +13,59 @@
 'use strict';
 
 // sanity check
-if (typeof Helix == "undefined" || typeof Helix.MarkdownPreview == "undefined") {
-	throw new Error("Helix.MarkdownPreview is undefined, load hlx_md_preview.js first");
+if (typeof HelixMarkdownPreview === 'undefined') {
+  throw new Error('HelixMarkdownPreview is undefined');
 }
-// set shorthand
-var hmdp = Helix.MarkdownPreview;
 
 // upon installation, define where the extension should be active
-chrome.runtime.onInstalled.addListener(function(details) {
-	// TODO: use rules from configuration
-	chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
-		chrome.declarativeContent.onPageChanged.addRules([{
-			conditions: [
-				new chrome.declarativeContent.PageStateMatcher({
-					pageUrl: {
-						hostSuffix: "github.com",
-						pathContains: "/edit/",
-						pathSuffix: ".md"
-					}
-				}),
-				new chrome.declarativeContent.PageStateMatcher({
-					pageUrl: {
-						hostEquals: "raw.githubusercontent.com",
-						pathSuffix: ".md"
-					}
-				})
-			],
-			actions: [new chrome.declarativeContent.ShowPageAction()]
-		}]);
-	});
-	console.log("Extension installed");
+chrome.runtime.onInstalled.addListener(() => {
+  // TODO: use rules from configuration
+  chrome.declarativeContent.onPageChanged.removeRules(undefined, () => {
+    chrome.declarativeContent.onPageChanged.addRules([{
+      conditions: [
+        new chrome.declarativeContent.PageStateMatcher({
+          pageUrl: {
+            hostSuffix: 'github.com',
+            pathContains: '/edit/',
+            pathSuffix: '.md',
+          },
+        }),
+        new chrome.declarativeContent.PageStateMatcher({
+          pageUrl: {
+            hostEquals: 'raw.githubusercontent.com',
+            pathSuffix: '.md',
+          },
+        }),
+      ],
+      actions: [new chrome.declarativeContent.ShowPageAction()],
+    }]);
+  });
+  console.log('Extension installed');
 });
 
 // when the page action is clicked, initiate markdown preview
-chrome.pageAction.onClicked.addListener(function(tab) {
-	console.log("Action triggered on", tab.url);
-	if (hmdp.isReceiverStarted()) {
-		hmdp.stopReceiver();
-	} else {
-		hmdp.startReceiver(tab.id, function() {
-			// load content scripts inside the tab
-			chrome.tabs.executeScript(tab.id, {
-				"file": "hlx_md_preview.js"
-			}, function() {
-				chrome.tabs.executeScript(tab.id, {
-					"file": "content.js"
-				}, function() {
-					// start polling
-					hmdp.startPoll(function() {
-						console.log("Requesting markdown from", tab.id);
-						chrome.tabs.sendMessage(tab.id, {"id": hmdp.ID, "tabId":tab.id}, hmdp.process);
-					});
-				});
-			});
-		});
-	}
+chrome.pageAction.onClicked.addListener((tab) => {
+  /* eslint-disable no-console */
+  console.log('Action triggered on', tab.url);
+
+  HelixMarkdownPreview.getInstance(window, (hmdp) => {
+
+    hmdp.startReceiver(tab);
+    console.log('tab not tagged yet, loading scripts');
+    // load scripts inside the content tab
+    chrome.tabs.executeScript(tab.id, {
+      file: 'HelixMarkdownPreview.js',
+    }, () => {
+      chrome.tabs.executeScript(tab.id, {
+        file: 'content.js',
+      }, () => {
+        hmdp.startSender(() => {
+          console.log('Requesting markdown from', tab.id);
+          chrome.tabs.sendMessage(tab.id, { id: hmdp.ID, tabId: tab.id },
+            hmdp.process);
+        });
+      });
+    });
+  });
+  /* eslint-enable no-console */
 });

@@ -13,18 +13,18 @@
 'use strict';
 
 // sanity check
-if (typeof Helix == "undefined" || typeof Helix.MarkdownPreview == "undefined") {
-	throw new Error("Helix.MarkdownPreview is undefined, load hlx_md_preview.js first");
+if (typeof HelixMarkdownPreview === 'undefined') {
+  throw new Error('HelixMarkdownPreview is undefined, load hlx_md_preview.js first');
 }
-// set shorthand
-var hmdp = Helix.MarkdownPreview;
 
-hmdp.init(function() {
-	// start listening for messages
-	chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
-		if (msg.id == hmdp.ID) {
-			//console.log(msg.tabId, "sending markdown")
-			sendResponse(hmdp.assemble(msg.tabId));
-		}
-	});
+HelixMarkdownPreview.getInstance(window, (hmdp) => {
+  // start listening for messages
+  chrome.runtime.onMessage.addListener((msg, ...args) => {
+    if (msg.id === hmdp.ID && args.length > 1) {
+      // eslint-disable-next-line no-console
+      console.log('sending markdown from', msg.tabId);
+      const sendResponse = args[1];
+      sendResponse(hmdp.assemble(msg.tabId));
+    }
+  });
 });
