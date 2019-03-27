@@ -51,7 +51,6 @@ chrome.pageAction.onClicked.addListener((tab) => {
   HelixMarkdownPreview.getInstance(window, (hmdp) => {
 
     hmdp.startReceiver(tab);
-    console.log('tab not tagged yet, loading scripts');
     // load scripts inside the content tab
     chrome.tabs.executeScript(tab.id, {
       file: 'HelixMarkdownPreview.js',
