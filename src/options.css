@@ -246,7 +246,7 @@ textarea#urlFiltersInput {
 	display:none;
 }
 
-.warn {
+.warn, .error {
 	color:#C00;
 }
 

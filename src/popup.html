@@ -21,15 +21,17 @@ governing permissions and limitations under the License.
 </head>
 <body>
 	<div class="markdown-head">
-		<div class="logo" title="Project Helix"></div>
+		<div>
+      <a href="https://github.com/adobe/helix-home" class="logo" title="Project Helix" target="_blank"></a>
+    </div>
 		<div>
 			<a href="options.html" title="View settings" target="_blank">Options</a>
 		</div>
 		<div>
 			<form>
 				<label for="zoom">Zoom:</label>
-				<select class="form-select" id="Helix_Markdown_Preview_zoom" title="Adjust zoom">
-					<option value="1.0">100%</option>
+				<select class="form-select" id="HelixMarkdownPreview_zoom" title="Adjust zoom">
+					<option value="1">100%</option>
 					<option value="0.9">90%</option>
 					<option value="0.8">80%</option>
 					<option value="0.7">70%</option>
@@ -39,11 +41,10 @@ governing permissions and limitations under the License.
 			</form>
 		</div>
 		<div>
-			<button id="Helix_Markdown_Preview_refresh" class="hidden" title="Refresh">Refresh</button>
+			<button id="HelixMarkdownPreview_refresh" class="hidden" title="Refresh">Refresh</button>
 		</div>
 	</div>
-	<iframe src="preview.html" id="Helix_Markdown_Preview_iframe" width="100%"></iframe>
-	<script type="text/javascript" src="hlx_md_preview.js"></script>
-	<script type="text/javascript" src="popup.js"></script>
+	<iframe src="preview.html" id="HelixMarkdownPreview_iframe" width="100%"></iframe>
+	<script type="text/javascript" src="HelixMarkdownPreview.js"></script>
 </body>
 </html>
