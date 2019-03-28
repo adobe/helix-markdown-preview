@@ -12,6 +12,8 @@
 
 'use strict';
 
+/* eslint-disable no-console */
+
 // sanity check
 if (typeof HelixMarkdownPreview === 'undefined') {
   throw new Error('HelixMarkdownPreview is undefined');
@@ -43,29 +45,27 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log('Extension installed');
 });
 
-// when the page action is clicked, initiate markdown preview
+// when the page action is clicked, toggle the markdown preview
 chrome.pageAction.onClicked.addListener((tab) => {
-  /* eslint-disable no-console */
-  console.log('Action triggered on', tab.url);
-
-  HelixMarkdownPreview.getInstance(window, (hmdp) => {
-
-    hmdp.startReceiver(tab);
-    console.log('tab not tagged yet, loading scripts');
-    // load scripts inside the content tab
-    chrome.tabs.executeScript(tab.id, {
-      file: 'HelixMarkdownPreview.js',
-    }, () => {
+  HelixMarkdownPreview.getReceiver((receiver) => {
+    if (!receiver.isRunning()) {
+      // first load scripts inside the content tab
       chrome.tabs.executeScript(tab.id, {
-        file: 'content.js',
+        file: 'HelixMarkdownPreview.js',
       }, () => {
-        hmdp.startSender(() => {
-          console.log('Requesting markdown from', tab.id);
-          chrome.tabs.sendMessage(tab.id, { id: hmdp.ID, tabId: tab.id },
-            hmdp.process);
+        chrome.tabs.executeScript(tab.id, {
+          file: 'content.js',
+        }, () => {
+          // open connection between extension and content tab
+          receiver.start(tab, () => {
+            console.log('Requesting markdown from', tab.id);
+            chrome.tabs.sendMessage(tab.id, { id: receiver.ID, tabId: tab.id },
+              receiver.process);
+          });
         });
       });
-    });
+    } else {
+      receiver.stop();
+    }
   });
-  /* eslint-enable no-console */
 });
