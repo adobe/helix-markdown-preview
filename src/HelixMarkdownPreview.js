@@ -12,39 +12,100 @@
 
 'use strict';
 
-// sanity check
+// only do this once
 if (typeof window.HelixMarkdownPreview === 'undefined') {
   /**
-   * HelixMarkdownPreview allows to request and process markdown from a given source.
+   * HelixMarkdownPreview uses a <code>Sender</code> and a <code>Receiver</code>
+   * to request and process markdown from a given source and provides a live preview.
    */
   /* eslint-disable-next-line no-unused-vars, func-names */
   window.HelixMarkdownPreview = (function () {
     const ID = 'HelixMarkdownPreview';
-    let instance;
-    let context;
-    let cb;
+    let receiverInst;
+    let senderInst;
+    let receiverWin;
+    let senderWin;
     let activePoll = 0;
     let textArea;
-    let popup;
+    let popup = null;
     let previewWin;
-    // let previewInitialized = false;
+    let firstLoad = true;
     // let diff;
     let config;
 
     /**
-     * Initializes the <code>HelixMarkdownPreview</code> instance.
-     * @param {window} win The window to use (optional, defaults to <code>window</code>)
+     * Initializes the configuration and returns the specified object.
+     * @param {object} obj The object to return
      * @param {function} callback The function to call when done (optional)
      */
-    function init(win, callback) {
-      context = win || window;
-      cb = callback;
+    function initInstance(obj, callback) {
+      // load default config and overrides from storage
+      chrome.storage.sync.get(null, (customConfig) => {
+        config = Object.assign({
+          urlFilters: [{
+            hostSuffix: 'github.com',
+            pathContains: '/edit/',
+            pathSuffix: '.md',
+          }, {
+            hostEquals: 'raw.githubusercontent.com',
+            pathSuffix: '.md',
+          }],
+          gitBranch: 'master',
+          helixRendering: false,
+          helixBaseUrl: null,
+          pollInterval: 1000,
+          popupMinWidth: 500,
+          popupPosition: 'right',
+          popupZoom: 0,
+        },
+        customConfig);
+        // console.log('config', config);
 
-      // extension-side methods
+        const ret = Object.assign(obj, {
+          /**
+           * The common ID used to identify windows and elements related to this extension.
+           * @return {string} The ID
+           */
+          get ID() {
+            return ID;
+          },
+        });
+        if (callback) callback(ret);
+        return ret;
+      });
+    }
+
+    /**
+     * Initializes the <code>HelixMarkdownPreview.Receiver</code> instance.
+     * @private
+     * @param {function} callback The function to call when done (optional)
+     */
+    function initReceiver(callback) {
+      receiverWin = window;
+      /**
+       * Opens connection between receiver and sender.
+       * @private
+       * @param {function} func The polling function
+       */
+      function openConnection(func) {
+        activePoll = receiverWin.setInterval(func, config.pollInterval);
+      }
+
+      /**
+       * Closes connection between receiver and sender.
+       * @private
+       * @param {function} func The polling function
+       */
+      function closeConnection() {
+        if (activePoll !== 0) {
+          receiverWin.clearInterval(activePoll);
+          activePoll = 0;
+        }
+      }
 
       /**
        * Enables zooming in the preview window.
-       * @return {class} this
+       * @private
        */
       function enableZoom() {
         if (!popup || !previewWin) return;
@@ -89,10 +150,10 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
 
       /**
        * Disables zooming in the preview window.
-       * @return {class} this
+       * @private
        */
       function disableZoom() {
-        if (!popup) return this;
+        if (!popup) return;
         const zoomCtl = popup.document.getElementById(`${ID}_zoom`);
         zoomCtl.disabled = true;
         // remove zoom-related listeners
@@ -104,24 +165,11 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
           const l = popup.listeners.shift();
           popup.removeEventListener(l.name, l.func);
         }
-        return this;
-      }
-
-      /**
-       * Stops the interval for sending markdown to the receiver.
-       * @return {class} this
-       */
-      function stopSender() {
-        if (activePoll) {
-          context.clearInterval(activePoll);
-          activePoll = 0;
-        }
-        return this;
       }
 
       /**
        * Removes the preview window and resets the extension.
-       * @return {class} this
+       * @private
        */
       function removePopup() {
         if (popup) {
@@ -129,37 +177,39 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
         }
         popup = null;
         previewWin = null;
-        return stopSender();
       }
 
       /**
        * Creates a new popup window for the markdown preview.
+       * @private
        * @param {object} tab The browser tab
-       * @return {class} this
        */
       function createPopup(tab) {
         const t = 0; // TODO: get actual y offset
-        let w = config.popupWidth || context.screen.width - tab.width;
+        let w = config.popupWidth || receiverWin.screen.width - tab.width;
         if (w < config.popupMinWidth) w = config.popupMinWidth;
-        const h = context.screen.height;
-        const l = (config.popupPosition === 'left') ? 0 : context.screen.width - w;
-        popup = context.open('popup.html', ID, `width=${w},height=${h},top=${t},left=${l}`);
+        const h = receiverWin.screen.height;
+        const l = (config.popupPosition === 'left') ? 0 : receiverWin.screen.width - w;
+        popup = receiverWin.open('popup.html', ID, `width=${w},height=${h},top=${t},left=${l}`);
         // TODO: add close listener to parent window and close popup if tab is closed
         function prepPreviewWin() {
           previewWin = popup.document.getElementById(`${ID}_iframe`).contentWindow;
           // set initial content
           previewWin.document.getElementById(ID).innerHTML = '<p>Initializing...</p>'; // TODO: i18n
-          popup.addEventListener('unload', () => removePopup());
+          popup.addEventListener('unload', () => {
+            closeConnection();
+            removePopup();
+          });
           popup.removeEventListener('load', prepPreviewWin);
           // remove this listener again
           enableZoom();
         }
         popup.addEventListener('load', prepPreviewWin);
-        return this;
       }
 
       /**
        * Returns the Helix URL if path is a markdown file and Helix is configured to be used.
+       * @private
        * @param {string} path The path of the markdown file
        * @return {string} The Helix URL or an empty <code>string</code>
        */
@@ -174,22 +224,123 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
         return url;
       }
 
-      // content-side methods
+      // initialize receiver object
+      initInstance({
+        /**
+         * Starts the receiver.
+         * @param {object} tab The browser tab
+         * @param {function} func The polling function
+         * @return {object} this
+         */
+        start(tab, func) {
+          this.stop();
+          createPopup(tab);
+          openConnection(func);
+          return this;
+        },
+
+        /**
+         * Checks if the receiver is active.
+         * @return boolean <code>true</code> if running, else <code>false</code>
+         */
+        isRunning() {
+          return (popup !== null);
+        },
+
+        /**
+         * Stops the receiver.
+         * @return {object} this
+         */
+        stop() {
+          closeConnection();
+          removePopup();
+          return this;
+        },
+
+        /**
+         * Processes the data and sends the markdown to the preview window.
+         * @param object data The data from the document:<ul>
+         * <li>string markdown The markdown</li>
+         * <li>number tabId The ID of the responding tab</li>
+         * <li>string baseUrl The URL prefix for relative paths (optional)</li>
+         * <li>string path The path of the markdown file being displayed</li>
+         * <li>boolean static <code>true</code> if the page in the tab is static,
+         *     else <code>false</code> (optional)</li></ul>
+         * @return {object} this
+         */
+        process(data) {
+          /* eslint-disable no-console */
+          if (!data) {
+            console.log('No data, abort', this);
+            return this.stop();
+          }
+          if (data.static) {
+            console.log('Static file, only process once');
+            closeConnection();
+          }
+          console.log('Processing data from', data.tabId);
+          if (previewWin) {
+            const helixUrl = getHelixUrl(data.path);
+            if (helixUrl) {
+              console.log('Helix mode');
+              if (firstLoad) {
+                // diff = new diffDOM.DiffDOM();
+                previewWin.location.href = helixUrl;
+                firstLoad = false;
+              } else {
+                // TODO: partial DOM update
+              }
+              disableZoom(); // TODO: enable zoom also in Helix mode
+              this.closeConnection(); // TODO: show live preview without manual refresh
+            } else {
+              console.log('Standalone mode');
+              if (data.baseUrl) {
+                marked.setOptions({
+                  baseUrl: data.baseUrl,
+                });
+              }
+              const md = marked(data.markdown);
+              try {
+                previewWin.document.getElementById(ID).innerHTML = md;
+              } catch (e) {
+                console.log('Error while processing markdown', e);
+              }
+            }
+          } else {
+            console.log('Preview window not found, cleaning up');
+            return this.stop();
+          }
+          return this;
+          /* eslint-enable no-console */
+        },
+      },
+      callback);
+    }
+
+    /**
+     * Initializes the <code>HelixMarkdownPreview.Sender</code> instance.
+     * @private
+     * @param {function} callback The function to call when done (optional)
+     */
+    function initSender(callback) {
+      senderWin = window;
 
       /**
        * Checks if the markdown file is static (raw).
+       * @private
        * @return {boolean} <code>true</code> if markdown file is static, else <code>false</code>
        */
       function isStatic() {
-        return context.location.hostname.startsWith('raw.');
+        return senderWin.location.hostname.startsWith('raw.');
       }
 
       /**
        * Retrieves the base URL for relative paths from the current context.
+       * @private
        * @return {string} The base URL
        */
       function getBaseUrl() {
-        let url = context.location.href;
+        let url = senderWin.location.href;
         url = url.substring(0, url.lastIndexOf('/') + 1);
         url = url.replace(/\/edit\//, '/raw/');
         return url;
@@ -197,10 +348,11 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
 
       /**
        * Retrieves the path from the current context.
+       * @private
        * @return {string} The path
        */
       function getPath() {
-        let path = context.location.pathname;
+        let path = senderWin.location.pathname;
         const branchCut = path.indexOf(`/${config.gitBranch}/`);
         if (branchCut > 0) {
           path = path.substring(branchCut + config.gitBranch.length + 1);
@@ -210,20 +362,21 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
 
       /**
        * Retrieves the markdown from the document.
+       * @private
        * @return {string} The markdown
        */
       function getMarkdown() {
         if (isStatic()) {
           // Get raw markdown
           try {
-            return context.document.body.innerText;
+            return senderWin.document.body.innerText;
           } catch (e) {
             // console.log('Error while retrieving raw markdown', e);
           }
         } else {
           // Get markdown from DOM
           if (!textArea) {
-            const textAreas = context.document.getElementsByTagName('textarea');
+            const textAreas = senderWin.document.getElementsByTagName('textarea');
             for (let i = 0; i < textAreas.length; i += 1) {
               const input = textAreas[i];
               if (input.name === 'value') {
@@ -247,161 +400,56 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
         return '\n';
       }
 
-      // load default config and overrides from storage
-      chrome.storage.sync.get(null, (customConfig) => {
-        config = Object.assign({
-          urlFilters: [{
-            hostSuffix: 'github.com',
-            pathContains: '/edit/',
-            pathSuffix: '.md',
-          }, {
-            hostEquals: 'raw.githubusercontent.com',
-            pathSuffix: '.md',
-          }],
-          gitBranch: 'master',
-          helixRendering: false,
-          helixBaseUrl: null,
-          pollInterval: 1000,
-          popupMinWidth: 500,
-          popupPosition: 'right',
-          popupZoom: 0,
+      // initialize sender object
+      initInstance({
+        /**
+         * Assembles the data for <code>HelixMarkdownPreview.Receiver</code>
+         * to consume.
+         * @param {number} tabId the ID of the current tab
+         * @return {object} The data object:<ul>
+         * <li>string markdown The markdown</li>
+         * <li>number tabId The ID of the responding tab</li>
+         * <li>string baseUrl The URL prefix for relative paths (optional)</li>
+         * <li>string path The path of the markdown file being displayed</li>
+         * <li>boolean static <code>true</code> if the page in the tab is static,
+         *     else <code>false</code> (optional)</li></ul>
+         */
+        assemble(tabId) {
+          return {
+            markdown: getMarkdown(),
+            tabId,
+            baseUrl: getBaseUrl(),
+            path: getPath(),
+            static: isStatic(),
+          };
         },
-        customConfig);
-        // console.log('config', config);
-
-        // public API
-        const ret = {
-          /**
-           * The common ID used to identify windows and elements related to this extension.
-           * @return {string} The ID
-           */
-          get ID() {
-            return ID;
-          },
-
-          /**
-           * Starts the receiver for markdown preview of the current tab.
-           * @param {object} tab The browser tab
-           * @return {class} this
-           */
-          startReceiver(tab) {
-            removePopup(); // make sure there is no previous popup around
-            createPopup(tab);
-            return this;
-          },
-
-          /**
-           * Checks if the receiver for markdown preview is active.
-           * @return boolean <code>true</code> if receiver is active, else <code>false</code>
-           */
-          isReceiverStarted() {
-            return (popup !== null);
-          },
-
-          /**
-           * Starts an interval for sending markdown to the receiver.
-           * @param {function} func The function to execute while polling
-           * @return {number} The ID of the interval
-           */
-          startSender(func) {
-            activePoll = context.setInterval(func, config.pollInterval);
-            return activePoll;
-          },
-
-          /**
-           * Assembles the data from the document for #process to consume.
-           * @param {number} tabId the ID of the current tab.
-           * @return {object} The data object:<ul>
-           * <li>string markdown The markdown</li>
-           * <li>number tabId The ID of the responding tab</li>
-           * <li>string baseUrl The URL prefix for relative paths (optional)</li>
-           * <li>string path The path of the markdown file being displayed</li>
-           * <li>boolean static <code>true</code> if the page in the tab is static,
-           *     else <code>false</code> (optional)</li></ul>
-           */
-          assemble(tabId) {
-            return {
-              markdown: getMarkdown(),
-              tabId,
-              baseUrl: getBaseUrl(),
-              path: getPath(),
-              static: isStatic(),
-            };
-          },
-
-          /**
-           * Processes the data and sends the markdown to the preview window.
-           * @param object data The data from the document:<ul>
-           * <li>string markdown The markdown</li>
-           * <li>number tabId The ID of the responding tab</li>
-           * <li>string baseUrl The URL prefix for relative paths (optional)</li>
-           * <li>string path The path of the markdown file being displayed</li>
-           * <li>boolean static <code>true</code> if the page in the tab is static,
-           *     else <code>false</code> (optional)</li></ul>
-           * @return {class} this
-           */
-          process(data) {
-            /* eslint-disable no-console */
-            if (!data) {
-              console.log('No data, abort', this);
-              return removePopup();
-            }
-            if (data.static) {
-              console.log('Static file, only process once');
-              stopSender();
-            }
-            console.log('Processing data from', data.tabId);
-            if (previewWin) {
-              const helixUrl = getHelixUrl(data.path);
-              if (helixUrl) {
-                console.log('Helix mode');
-                // if (!previewInitialized) {
-                //   diff = new diffDOM.DiffDOM();
-                previewWin.location.href = helixUrl;
-                //   previewInitialized = true;
-                // } else {
-                // TODO: partial DOM update
-                // }
-                disableZoom(); // TODO: enable zoom also in Helix mode
-                stopSender(); // TODO: show live preview without manual refresh
-              } else {
-                console.log('Standalone mode');
-                if (data.baseUrl) {
-                  marked.setOptions({
-                    baseUrl: data.baseUrl,
-                  });
-                }
-                const md = marked(data.markdown);
-                try {
-                  previewWin.document.getElementById(ID).innerHTML = md;
-                } catch (e) {
-                  console.log('Error while processing markdown', e);
-                }
-              }
-            } else {
-              console.log('Preview window not found, cleaning up');
-              return removePopup();
-            }
-            return this;
-            /* eslint-enable no-console */
-          },
-        };
-        if (cb) cb(ret);
-        return ret;
-      });
+      },
+      callback);
     }
 
     return {
       /**
-       * Returns an instance of <code>HelixMarkdownPreview</code>.
-       * @param {window} win The window to use (optional, defaults to <code>window</code>)
+       * Returns an instance of <code>HelixMarkdownPreview.Receiver</code>.
+       * @static
        * @param {function} callback The function to call when done (optional)
        */
-      getInstance(win, callback) {
-        if (!instance) {
-          instance = init(win, callback);
+      getReceiver(callback) {
+        if (!receiverInst) {
+          receiverInst = initReceiver(callback);
         }
-        return instance;
+        return receiverInst;
+      },
+
+      /**
+       * Returns an instance of <code>HelixMarkdownPreview.Sender</code>.
+       * @static
+       * @param {function} callback The function to call when done (optional)
+       */
+      getSender(callback) {
+        if (!senderInst) {
+          senderInst = initSender(callback);
+        }
+        return senderInst;
       },
     };
   }());

@@ -14,17 +14,22 @@
 
 // sanity check
 if (typeof HelixMarkdownPreview === 'undefined') {
-  throw new Error('HelixMarkdownPreview is undefined, load hlx_md_preview.js first');
+  throw new Error('HelixMarkdownPreview is undefined');
 }
 
-HelixMarkdownPreview.getInstance(window, (hmdp) => {
-  // start listening for messages
+HelixMarkdownPreview.getSender((sender) => {
+  // make sure this only happens once
+  if (window[`${sender.id}_sender`] !== undefined) {
+    return;
+  }
+  window[`${sender.id}_sender`] = sender;
   chrome.runtime.onMessage.addListener((msg, ...args) => {
-    if (msg.id === hmdp.ID && args.length > 1) {
+    if (msg.id === sender.ID
+      && args.length > 1
+      && typeof args[1] === 'function') {
       // eslint-disable-next-line no-console
-      console.log('sending markdown from', msg.tabId);
-      const sendResponse = args[1];
-      sendResponse(hmdp.assemble(msg.tabId));
+      console.log('Sending markdown from', msg.tabId);
+      args[1](sender.assemble(msg.tabId));
     }
   });
 });
