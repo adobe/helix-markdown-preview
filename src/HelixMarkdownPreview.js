@@ -30,7 +30,6 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
     let popup = null;
     let previewWin;
     let firstLoad = true;
-    // let diff;
     let config;
 
     /**
@@ -101,6 +100,7 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
           receiverWin.clearInterval(activePoll);
           activePoll = 0;
         }
+        firstLoad = true;
       }
 
       /**
@@ -149,13 +149,15 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
       }
 
       /**
-       * Disables zooming in the preview window.
+       * Resets zoom to 100% and disables zooming in the preview window.
        * @private
        */
       function disableZoom() {
-        if (!popup) return;
+        if (!popup || !previewWin) return;
         const zoomCtl = popup.document.getElementById(`${ID}_zoom`);
+        zoomCtl.value = 1;
         zoomCtl.disabled = true;
+        previewWin.document.body.style.zoom = 1;
         // remove zoom-related listeners
         while (zoomCtl.listeners && zoomCtl.listeners.length > 0) {
           const l = zoomCtl.listeners.shift();
@@ -220,8 +222,81 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
         }
         let url = config.helixBaseUrl;
         url += path.replace(/\.md/i, '.html');
-        url += `?hlx_cK=${Date.now()}`;
         return url;
+      }
+
+      /**
+       * Prefixes a relative URL with the Helix base URL.
+       * @private
+       * @param {string} url The URL to prefix
+       * @return {string} The prefixed URL
+       */
+      function rewriteLink(url) {
+        if (url.startsWith('http')
+          || url.startsWith('javascript')
+          || url.startsWith('#')) {
+          // leave these URLs alone
+          return url;
+        }
+        if (url.startsWith('/')) {
+          // URL absolute without host
+          return `${config.helixBaseUrl}${url}`;
+        }
+        if (url.startsWith('chrome-extension')) {
+          // chrome extension URL
+          return url.replace(`chrome-extension://${chrome.runtime.id}`, `${config.helixBaseUrl}`);
+        }
+        // assume URL relative to current file
+        if (config.helixUrl) {
+          const prefix = config.helixUrl.substring(0, config.helixUrl.lastIndexOf('/') + 1);
+          return `${prefix}${url}`;
+        }
+        return url;
+      }
+
+      /**
+       * Rewrites links in the specified document.
+       * @private
+       * @param {Element} doc The document element
+       * @return {Element} The document element with rewritten links
+       */
+      function rewriteLinks(doc) {
+        const elems = Array.prototype.concat.call(
+          Array.from(doc.getElementsByTagName('link')),
+          Array.from(doc.getElementsByTagName('script')),
+          Array.from(doc.getElementsByTagName('img')),
+          Array.from(doc.getElementsByTagName('a')),
+        );
+        elems.forEach((elem) => {
+          const e = elem;
+          if (e.src) {
+            e.src = rewriteLink(e.src);
+          }
+          if (e.href) {
+            e.href = rewriteLink(e.href);
+          }
+          if (elem.srcset) {
+            const srcSet = e.srcset.split(',');
+            const newSrcSet = [];
+            srcSet.forEach(src => newSrcSet.push(rewriteLink(src)));
+            e.srcset = newSrcSet.join(',');
+          }
+        });
+        return doc;
+      }
+
+      /**
+       * Returns an <code><html></code> document element based on the specified HTML.
+       * @private
+       * @param {string} html The HTML string
+       * @param {string} currentUrl The URL of the current file
+       * @return {Element} The document element
+       */
+      function getDocument(html, currentUrl) {
+        const doc = receiverWin.document.createElement('html');
+        doc.innerHTML = html.trim();
+        doc.lastChild.style.fontSize = '100%'; // chrome injects a stylesheet setting font-size to 75%...
+        return rewriteLinks(doc, currentUrl);
       }
 
       // initialize receiver object
@@ -280,18 +355,35 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
           }
           console.log('Processing data from', data.tabId);
           if (previewWin) {
-            const helixUrl = getHelixUrl(data.path);
-            if (helixUrl) {
+            config.helixUrl = getHelixUrl(data.path);
+            if (config.helixUrl) {
               console.log('Helix mode');
-              if (firstLoad) {
-                // diff = new diffDOM.DiffDOM();
-                previewWin.location.href = helixUrl;
-                firstLoad = false;
-              } else {
-                // TODO: partial DOM update
-              }
-              disableZoom(); // TODO: enable zoom also in Helix mode
-              this.closeConnection(); // TODO: show live preview without manual refresh
+              disableZoom(); // TODO: enable zooming also in Helix mode
+              const xhttp = new XMLHttpRequest();
+              xhttp.onreadystatechange = (evt) => {
+                const xhr = evt.target;
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                  const newDoc = getDocument(xhr.responseText);
+                  try {
+                    if (firstLoad) {
+                      previewWin.document.documentElement.replaceWith(newDoc);
+                      firstLoad = false;
+                    } else {
+                      const oldBody = previewWin.document.body;
+                      diffDOM.apply(oldBody, diffDOM.diff(oldBody, newDoc.lastChild));
+                    }
+                  } catch (e) {
+                    // console.log('Unable to process Helix output');
+                  }
+                }
+              };
+              xhttp.open('POST', config.helixUrl);
+              xhttp.setRequestHeader('Content-Type', 'application/json');
+              xhttp.send(JSON.stringify({
+                content: {
+                  body: data.markdown,
+                },
+              }));
             } else {
               console.log('Standalone mode');
               if (data.baseUrl) {
