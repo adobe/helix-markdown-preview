@@ -3,15 +3,19 @@
 	"name": "Helix Markdown Preview",
 	"version": "0.1",
 	"options_page": "options.html",
-	"description": "Live preview of markdown files while authoring.",
+	"description": "Live preview of markdown files while editing.",
 	"permissions": [
 		"storage",
 		"declarativeContent",
-		"activeTab"
-	],
+		"activeTab",
+    "http://localhost:3000/*",
+    "http://127.0.0.1:3000/*",
+    "https://*"
+  ],
 	"background": {
 		"scripts": [
 			"./lib/marked.min.js",
+			"./lib/diffDOM.min.js",
 			"HelixMarkdownPreview.js",
 			"background.js"
 		],

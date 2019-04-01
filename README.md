@@ -44,8 +44,9 @@ Bt default, the Markdown will be previewed in standalone, client-sided mode. In 
 
 ## 3rd party dependencies
 
-Helix Markdown Preview uses:
-* [Marked](https://github.com/markedjs/marked) JS library to render markdown in the preview
-* [Primer](https://primer.style/) CSS for GitHub-style output
+Helix Markdown Preview uses the following libraries:
+* [Marked](https://github.com/markedjs/marked) JS library to render markdown in the preview ([MIT License](https://opensource.org/licenses/MIT))
+* [diffDOM](https://github.com/fiduswriter/diffDOM) JS library to diff DOM elements ([LGPL v3](https://www.gnu.org/licenses/lgpl-3.0.txt)
+* [Primer](https://primer.style/) CSS for GitHub-style output ([MIT License](https://opensource.org/licenses/MIT))
 
-Both are released under [MIT License](https://opensource.org/licenses/MIT).
+
