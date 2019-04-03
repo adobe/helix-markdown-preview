@@ -343,13 +343,13 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
           if (data.static) {
             // console.log('Static preview');
           } else {
-            console.log('Live preview');
+            // console.log('Live preview');
           }
           // console.log('Processing data');
           if (previewWin) {
             config.helixUrl = getHelixUrl(data.path);
             if (config.helixUrl) {
-              console.log('Helix rendering');
+              // console.log('Helix rendering');
               disableZoom(); // TODO: enable zooming also in Helix mode
               const xhttp = new XMLHttpRequest();
               xhttp.onreadystatechange = (evt) => {
@@ -387,7 +387,7 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
               try {
                 previewWin.document.getElementById(ID).innerHTML = md;
               } catch (e) {
-                console.log('Error while processing markdown', e);
+                // console.log('Error while processing markdown', e);
               }
             }
           } else {
