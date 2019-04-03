@@ -48,24 +48,20 @@ chrome.runtime.onInstalled.addListener(() => {
 // when the page action is clicked, toggle the markdown preview
 chrome.pageAction.onClicked.addListener((tab) => {
   HelixMarkdownPreview.getReceiver((receiver) => {
-    if (!receiver.isRunning()) {
-      // first load scripts inside the content tab
+    // load scripts inside the content tab
+    chrome.tabs.executeScript(tab.id, {
+      file: 'HelixMarkdownPreview.js',
+    }, () => {
       chrome.tabs.executeScript(tab.id, {
-        file: 'HelixMarkdownPreview.js',
+        file: 'content.js',
       }, () => {
-        chrome.tabs.executeScript(tab.id, {
-          file: 'content.js',
-        }, () => {
-          // open connection between extension and content tab
-          receiver.start(tab, () => {
-            console.log('Requesting markdown from', tab.id);
-            chrome.tabs.sendMessage(tab.id, { id: receiver.ID, tabId: tab.id },
-              receiver.process);
-          });
-        });
+        // prep receiver
+        if (receiver.isRunning()) {
+          receiver.stop();
+        } else {
+          receiver.start(tab);
+        }
       });
-    } else {
-      receiver.stop();
-    }
+    });
   });
 });

@@ -18,18 +18,10 @@ if (typeof HelixMarkdownPreview === 'undefined') {
 }
 
 HelixMarkdownPreview.getSender((sender) => {
-  // make sure this only happens once
-  if (window[`${sender.id}_sender`] !== undefined) {
-    return;
+  // prep sender
+  if (sender.isRunning()) {
+    sender.stop();
+  } else {
+    sender.start();
   }
-  window[`${sender.id}_sender`] = sender;
-  chrome.runtime.onMessage.addListener((msg, ...args) => {
-    if (msg.id === sender.ID
-      && args.length > 1
-      && typeof args[1] === 'function') {
-      // eslint-disable-next-line no-console
-      console.log('Sending markdown from', msg.tabId);
-      args[1](sender.assemble(msg.tabId));
-    }
-  });
 });

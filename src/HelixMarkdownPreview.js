@@ -23,13 +23,6 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
     const ID = 'HelixMarkdownPreview';
     let receiverInst;
     let senderInst;
-    let receiverWin;
-    let senderWin;
-    let activePoll = 0;
-    let textArea;
-    let popup = null;
-    let previewWin;
-    let firstLoad = true;
     let config;
 
     /**
@@ -40,6 +33,7 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
     function initInstance(obj, callback) {
       // load default config and overrides from storage
       chrome.storage.sync.get(null, (customConfig) => {
+        // defaults
         config = Object.assign({
           urlFilters: [{
             hostSuffix: 'github.com',
@@ -52,13 +46,13 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
           gitBranch: 'master',
           helixRendering: false,
           helixBaseUrl: null,
-          pollInterval: 1000,
+          pollInterval: 500,
           popupMinWidth: 500,
           popupPosition: 'right',
           popupZoom: 0,
         },
         customConfig);
-        // console.log('config', config);
+        // console.log('Current config', config);
 
         const ret = Object.assign(obj, {
           /**
@@ -80,28 +74,10 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
      * @param {function} callback The function to call when done (optional)
      */
     function initReceiver(callback) {
-      receiverWin = window;
-      /**
-       * Opens connection between receiver and sender.
-       * @private
-       * @param {function} func The polling function
-       */
-      function openConnection(func) {
-        activePoll = receiverWin.setInterval(func, config.pollInterval);
-      }
-
-      /**
-       * Closes connection between receiver and sender.
-       * @private
-       * @param {function} func The polling function
-       */
-      function closeConnection() {
-        if (activePoll !== 0) {
-          receiverWin.clearInterval(activePoll);
-          activePoll = 0;
-        }
-        firstLoad = true;
-      }
+      const receiverWin = window;
+      let activeTab = null;
+      let popup = null;
+      let previewWin = null;
 
       /**
        * Enables zooming in the preview window.
@@ -177,6 +153,9 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
         if (popup) {
           popup.close();
         }
+        chrome.extension.getViews({ type: 'tab' }).forEach((v) => {
+          v.close();
+        });
         popup = null;
         previewWin = null;
       }
@@ -184,11 +163,12 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
       /**
        * Creates a new popup window for the markdown preview.
        * @private
-       * @param {object} tab The browser tab
+       * @param {function} func The function to call when done (optional)
        */
-      function createPopup(tab) {
+      function createPopup(func) {
+        removePopup();
         const t = 0; // TODO: get actual y offset
-        let w = config.popupWidth || receiverWin.screen.width - tab.width;
+        let w = config.popupWidth || receiverWin.screen.width - activeTab.width;
         if (w < config.popupMinWidth) w = config.popupMinWidth;
         const h = receiverWin.screen.height;
         const l = (config.popupPosition === 'left') ? 0 : receiverWin.screen.width - w;
@@ -199,12 +179,14 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
           // set initial content
           previewWin.document.getElementById(ID).innerHTML = '<p>Initializing...</p>'; // TODO: i18n
           popup.addEventListener('unload', () => {
-            closeConnection();
-            removePopup();
+            HelixMarkdownPreview.getReceiver((receiver) => {
+              receiver.stop();
+            });
           });
           popup.removeEventListener('load', prepPreviewWin);
           // remove this listener again
           enableZoom();
+          if (func) func();
         }
         popup.addEventListener('load', prepPreviewWin);
       }
@@ -295,7 +277,7 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
       function getDocument(html, currentUrl) {
         const doc = receiverWin.document.createElement('html');
         doc.innerHTML = html.trim();
-        doc.lastChild.style.fontSize = '100%'; // chrome injects a stylesheet setting font-size to 75%...
+        doc.lastChild.style.fontSize = '100%'; // chrome injects a mysterious stylesheet setting body font-size to 75%...
         return rewriteLinks(doc, currentUrl);
       }
 
@@ -303,14 +285,21 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
       initInstance({
         /**
          * Starts the receiver.
-         * @param {object} tab The browser tab
-         * @param {function} func The polling function
+         * @param {object} tab The current browser tab
          * @return {object} this
          */
-        start(tab, func) {
-          this.stop();
-          createPopup(tab);
-          openConnection(func);
+        start(tab) {
+          activeTab = tab;
+          createPopup(() => {
+            chrome.tabs.sendMessage(tab.id, { id: chrome.runtime.id, action: 'send' });
+          });
+          // listen for messages from the sender
+          chrome.runtime.onMessage.addListener((data, context) => {
+            if (activeTab && context.id === chrome.runtime.id && context.tab.id === activeTab.id) {
+              this.receive(data);
+            }
+          });
+          chrome.runtime[`${ID}_receiverOn`] = true;
           return this;
         },
 
@@ -319,7 +308,7 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
          * @return boolean <code>true</code> if running, else <code>false</code>
          */
         isRunning() {
-          return (popup !== null);
+          return chrome.runtime[`${ID}_receiverOn`];
         },
 
         /**
@@ -327,37 +316,40 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
          * @return {object} this
          */
         stop() {
-          closeConnection();
           removePopup();
+          if (activeTab) {
+            chrome.tabs.sendMessage(activeTab.id, { id: ID, action: 'stop' });
+            activeTab = null;
+          }
+          chrome.runtime[`${ID}_receiverOn`] = false;
           return this;
         },
 
         /**
-         * Processes the data and sends the markdown to the preview window.
+         * Receives and processes the data, then sends markdown to the preview window.
          * @param object data The data from the document:<ul>
          * <li>string markdown The markdown</li>
-         * <li>number tabId The ID of the responding tab</li>
          * <li>string baseUrl The URL prefix for relative paths (optional)</li>
          * <li>string path The path of the markdown file being displayed</li>
-         * <li>boolean static <code>true</code> if the page in the tab is static,
+         * <li>boolean static <code>true</code> if the content is static,
          *     else <code>false</code> (optional)</li></ul>
          * @return {object} this
          */
-        process(data) {
-          /* eslint-disable no-console */
+        receive(data) {
           if (!data) {
-            console.log('No data, abort', this);
-            return this.stop();
+            // console.log('No data, abort');
+            return this;
           }
           if (data.static) {
-            console.log('Static file, only process once');
-            closeConnection();
+            // console.log('Static preview');
+          } else {
+            // console.log('Live preview');
           }
-          console.log('Processing data from', data.tabId);
+          // console.log('Processing data');
           if (previewWin) {
             config.helixUrl = getHelixUrl(data.path);
             if (config.helixUrl) {
-              console.log('Helix mode');
+              // console.log('Helix rendering');
               disableZoom(); // TODO: enable zooming also in Helix mode
               const xhttp = new XMLHttpRequest();
               xhttp.onreadystatechange = (evt) => {
@@ -365,9 +357,9 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
                 if (xhr.readyState === 4 && xhr.status === 200) {
                   const newDoc = getDocument(xhr.responseText);
                   try {
-                    if (firstLoad) {
+                    if (!popup[`${ID}_init`]) {
                       previewWin.document.documentElement.replaceWith(newDoc);
-                      firstLoad = false;
+                      popup[`${ID}_init`] = true;
                     } else {
                       const oldBody = previewWin.document.body;
                       diffDOM.apply(oldBody, diffDOM.diff(oldBody, newDoc.lastChild));
@@ -385,7 +377,7 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
                 },
               }));
             } else {
-              console.log('Standalone mode');
+              // console.log('Standalone rendering');
               if (data.baseUrl) {
                 marked.setOptions({
                   baseUrl: data.baseUrl,
@@ -395,15 +387,14 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
               try {
                 previewWin.document.getElementById(ID).innerHTML = md;
               } catch (e) {
-                console.log('Error while processing markdown', e);
+                // console.log('Error while processing markdown', e);
               }
             }
           } else {
-            console.log('Preview window not found, cleaning up');
-            return this.stop();
+            // console.log('Preview window not found, cleaning up');
+            return this;
           }
           return this;
-          /* eslint-enable no-console */
         },
       },
       callback);
@@ -415,12 +406,16 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
      * @param {function} callback The function to call when done (optional)
      */
     function initSender(callback) {
-      senderWin = window;
+      const senderWin = window;
+      let data;
+      let receiverId;
+      let editor;
 
       /**
        * Checks if the markdown file is static (raw).
        * @private
-       * @return {boolean} <code>true</code> if markdown file is static, else <code>false</code>
+       * @return {boolean} <code>true</code> if content is static,
+       *                   else <code>false</code>
        */
       function isStatic() {
         return senderWin.location.hostname.startsWith('raw.');
@@ -453,67 +448,137 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
       }
 
       /**
+       * The change listener for the markdown editor to enable live preview.
+       * @private
+       */
+      function editorChangeListener() {
+        if (!senderWin[`${ID}_timeout`]) {
+          senderWin[`${ID}_timeout`] = senderWin.setTimeout(() => {
+            // eslint-disable-next-line no-use-before-define
+            sendData();
+            senderWin[`${ID}_timeout`] = 0;
+          }, config.pollInterval);
+        }
+      }
+
+      /**
+       * Attempts to find an editor in the current window.
+       * @private
+       * @return {Element} The editor or <code>null</code>
+       */
+      function getEditor() {
+        const textAreas = senderWin.document.getElementsByTagName('textarea');
+        for (let i = 0; i < textAreas.length; i += 1) {
+          const input = textAreas[i];
+          if (input.name === 'value') {
+            input.addEventListener('change', editorChangeListener);
+            return input;
+          }
+        }
+        return null;
+      }
+
+      /**
        * Retrieves the markdown from the document.
        * @private
        * @return {string} The markdown
        */
       function getMarkdown() {
-        if (isStatic()) {
-          // Get raw markdown
+        if (data.static) {
+          // get raw markdown
           try {
             return senderWin.document.body.innerText;
           } catch (e) {
             // console.log('Error while retrieving raw markdown', e);
           }
         } else {
-          // Get markdown from DOM
-          if (!textArea) {
-            const textAreas = senderWin.document.getElementsByTagName('textarea');
-            for (let i = 0; i < textAreas.length; i += 1) {
-              const input = textAreas[i];
-              if (input.name === 'value') {
-                textArea = input;
-                break;
-              }
-            }
+          // github is in edit mode
+          // retrieve markdown from editor
+          if (!editor) {
+            editor = getEditor();
           }
-          if (textArea) {
-            // github is in edit mode
-            // retrieve markdown from textarea
-            try {
-              return textArea.value ? textArea.value : '\n';
-            } catch (e) {
-              // console.log('Error while retrieving markdown from DOM', e);
-            }
-          } else {
-            // console.log('No markdown found');
+          try {
+            return editor.value ? editor.value : '\n';
+          } catch (e) {
+            // console.log('Error while retrieving markdown from DOM', e);
           }
         }
         return '\n';
       }
 
+      /**
+       * Assembles the data from the current browser window and sends it
+       * to the receiver.
+       * @private
+       * @return {object} The data object:<ul>
+       * <li>string markdown The markdown</li>
+       * <li>string path The path of the markdown file being displayed</li>
+       * <li>boolean static <code>true</code> if the content is static,
+       *     else <code>false</code> (optional)</li></ul>
+       * <li>string baseUrl The URL prefix for relative paths (optional)</li>
+       */
+      function sendData() {
+        if (!data) {
+          data = {
+            path: getPath(),
+            static: isStatic(),
+            baseUrl: getBaseUrl(),
+          };
+        }
+        data.markdown = getMarkdown();
+        chrome.runtime.sendMessage(receiverId, data);
+      }
+
       // initialize sender object
       initInstance({
         /**
-         * Assembles the data for <code>HelixMarkdownPreview.Receiver</code>
-         * to consume.
-         * @param {number} tabId the ID of the current tab
-         * @return {object} The data object:<ul>
-         * <li>string markdown The markdown</li>
-         * <li>number tabId The ID of the responding tab</li>
-         * <li>string baseUrl The URL prefix for relative paths (optional)</li>
-         * <li>string path The path of the markdown file being displayed</li>
-         * <li>boolean static <code>true</code> if the page in the tab is static,
-         *     else <code>false</code> (optional)</li></ul>
+         * Prepares the sender for sending markdown to the receiver.
+         * @return {object} this
          */
-        assemble(tabId) {
-          return {
-            markdown: getMarkdown(),
-            tabId,
-            baseUrl: getBaseUrl(),
-            path: getPath(),
-            static: isStatic(),
-          };
+        start() {
+          chrome.runtime.onMessage.addListener(({ id, action }) => {
+            if (action === 'send') {
+              this.send(id);
+            }
+            if (action === 'stop') {
+              this.stop();
+            }
+          });
+          chrome.runtime[`${ID}_senderOn`] = true;
+          return this;
+        },
+
+        /**
+         * Checks if the sender is active.
+         * @return boolean <code>true</code> if running, else <code>false</code>
+         */
+        isRunning() {
+          return chrome.runtime[`${ID}_senderOn`];
+        },
+
+        /**
+         * Sends markdown from the content window to a processor.
+         * @param {string} id the ID of the receiver
+         * @return {object} this
+         */
+        send(id) {
+          receiverId = id;
+          sendData();
+          return this;
+        },
+
+        /**
+         * Terminates the sender.
+         * @return {object} this
+         */
+        stop() {
+          if (editor) {
+            editor.removeEventListener('change', editorChangeListener);
+            editor = null;
+          }
+          receiverId = null;
+          chrome.runtime[`${ID}_senderOn`] = false;
+          return this;
         },
       },
       callback);

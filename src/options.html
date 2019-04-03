@@ -19,15 +19,13 @@ governing permissions and limitations under the License.
 	<nav class="sideBar">
 		<h1>Chrome</h1>
 		<ul>
-			<li><a href="chrome://history" target="_blank">History</a></li>
 			<li class="selected">
 				<a href="chrome://extensions" target="_blank">Extensions</a>
 				<ul>
-					<li id="extShortName">Helix Markdown Preview</li>
-				</ul>
+            <li id="extShortName">Helix Markdown Preview</li>
+        </ul>
 			</li>
-			<li><a href="chrome://settings" target="_blank">Settings</a></li>
-			<li><a href="chrome://help" target="_blank">Help</a></li>
+			<li><a href="https://github.com/rofe/helix-markdown-preview/blob/master/README.md" target="_blank">Help</a></li>
 		</ul>
 	</nav>
 	<header>
@@ -114,13 +112,13 @@ governing permissions and limitations under the License.
 		<h2 class="settings-section-title">Preview Window</h2>
 
 		<section id="pollInterval">
-			<h3>Refresh Interval</h3>
+			<h3>Live Update Interval</h3>
 			<div>
 				<p><input id="pollIntervalInput" type="number"></p>
 				<p class="status" id="pollIntervalStatus"></p>
 			</div>
 			<div class="help">
-				<p>Refresh interval in milliseconds (defaults to 1000).<br />
+				<p>Milliseconds to wait between updates during live markdown previewing (defaults to 500).<br />
 				<span class="warn">Caution: Lower values may cause performance issues.</span></p>
 			</div>
 		</section>
