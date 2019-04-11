@@ -29,7 +29,7 @@ IN THE SOFTWARE.
 
 Primer CSS (c) 2018 GitHub Inc.
 Licensed under MIT license
-http://primer.github.io
+https://primer.style/css
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -57,7 +57,7 @@ https://github.com/fiduswriter/diffDOM
 
 diffDOM is licensed under the GNU Lesser General Public License, a copy of
 which is included below. A copy of the GNU General Public License is also
-included below. The source is included in ./src/lib/diffDOM.min.js.
+included below. The source is included in ./src/lib/diffDOM.js.
 
 Under the terms of the GNU Lesser General Public License, you are permitted
 to make changes to diffDOM for your own use, and Adobe delivers with the
