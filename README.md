@@ -37,10 +37,11 @@ Stay tuned...
 4. A popup opens, showing the rendered markdown.
 
 ## Helix Configuration
-By default, the markdown will be previewed in standalone, client-sided mode. In order to let Helix render the markdown, follow these steps: 
+By default, the markdown will be previewed in standalone, client-sided mode. In order to let a local Helix server render the markdown, follow these steps:
+0. Start a local Helix server (see [www.project-helix.io](https://www.project-helix.io) how to set it up)
 1. Right-click the Helix icon and select 'Options'
-2. Click checkbox to use Helix rendering
-3. Provide the base URL of your Helix instance (e.g. 'http://localhost:3000')
+2. Click the checkbox to use Helix rendering
+3. Provide the base URL of your Helix instance (e.g. `http://localhost:3000`)
 
 ## 3rd party dependencies
 
@@ -48,5 +49,4 @@ Helix Markdown Preview uses the following libraries:
 * [Marked](https://github.com/markedjs/marked) JS library to render markdown in the preview ([MIT License](https://opensource.org/licenses/MIT))
 * [diffDOM](https://github.com/fiduswriter/diffDOM) JS library to diff DOM elements ([LGPL v3](https://www.gnu.org/licenses/lgpl-3.0.txt)
 * [Primer](https://primer.style/) CSS for GitHub-style output ([MIT License](https://opensource.org/licenses/MIT))
-
 
