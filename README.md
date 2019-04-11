@@ -26,22 +26,28 @@ Stay tuned...
 2. Switch to edit mode. Notice that the Helix icon is colored now:<br />
 ![Extension icon enabled](src/images/helix_logo_16.png)
 3. Click the Helix icon in the tool bar.
-4. A popup opens, showing the rendered markdown.
-5. Edit the markdown on `github.com` and observe the changes in the popup.
+4. A popup opens, showing the rendered output.
+5. Edit the markdown and observe the changes in the popup.
 
 ### Preview static file
 1. Navigate to a markdown (*.md) file on `github.com`.
 2. Click the _Raw_ button. Notice that the Helix icon is colored now:<br />
 ![Extension icon enabled](src/images/helix_logo_16.png)
 3. Click the Helix icon in the tool bar.
-4. A popup opens, showing the rendered markdown.
+4. A popup opens, showing the rendered output.
 
 ## Helix Configuration
 By default, the markdown will be previewed in standalone, client-sided mode. In order to let a local Helix server render the markdown, follow these steps:
-0. Start a local Helix server (see [www.project-helix.io](https://www.project-helix.io) how to set it up)
-1. Right-click the Helix icon and select 'Options'
-2. Click the checkbox to use Helix rendering
-3. Provide the base URL of your Helix instance (e.g. `http://localhost:3000`)
+
+1. Start a local Helix server (see [www.project-helix.io](https://www.project-helix.io) how to set it up).
+2. Open the project on `github.com` and start editing a markdown (*.md) file.
+3. Right-click the Helix icon in the toolbar and select 'Options'.
+4. Click the checkbox to use Helix rendering.
+5. Provide the base URL of your Helix instance (e.g. `http://localhost:3000`).
+6. Click the Helix icon in the tool bar.
+7. A popup opens, showing the rendered output from Helix.
+8. Edit the markdown and observe the changes in the popup.
+
 
 ## 3rd party dependencies
 
@@ -49,4 +55,3 @@ Helix Markdown Preview uses the following libraries:
 * [Marked](https://github.com/markedjs/marked) JS library to render markdown in the preview ([MIT License](https://opensource.org/licenses/MIT))
 * [diffDOM](https://github.com/fiduswriter/diffDOM) JS library to diff DOM elements ([LGPL v3](https://www.gnu.org/licenses/lgpl-3.0.txt))
 * [Primer](https://primer.style/) CSS for GitHub-style output ([MIT License](https://opensource.org/licenses/MIT))
-
