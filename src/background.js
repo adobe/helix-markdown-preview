@@ -12,8 +12,6 @@
 
 'use strict';
 
-/* eslint-disable no-console */
-
 // sanity check
 if (typeof HelixMarkdownPreview === 'undefined') {
   throw new Error('HelixMarkdownPreview is undefined');
@@ -42,7 +40,7 @@ chrome.runtime.onInstalled.addListener(() => {
       actions: [new chrome.declarativeContent.ShowPageAction()],
     }]);
   });
-  console.log('Extension installed');
+  // console.log('Extension installed');
 });
 
 // when the page action is clicked, toggle the markdown preview

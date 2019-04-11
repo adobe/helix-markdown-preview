@@ -16,11 +16,23 @@
 if (typeof window.HelixMarkdownPreview === 'undefined') {
   /**
    * HelixMarkdownPreview uses a <code>Sender</code> and a <code>Receiver</code>
-   * to request and process markdown from a given source and provides a live preview.
+   * to retrieve and process markdown from a given source and provide a preview.
    */
   /* eslint-disable-next-line no-unused-vars, func-names */
   window.HelixMarkdownPreview = (function () {
     const ID = 'HelixMarkdownPreview';
+    // eslint-disable-next-line no-unused-vars
+    const debug = (...msg) => {
+      window.console.log(...msg);
+    };
+    const getProp = name => chrome.runtime[`${ID}_${name}`];
+    const setProp = (name, value) => {
+      if (value) {
+        chrome.runtime[`${ID}_${name}`] = value;
+      } else {
+        delete chrome.runtime[`${ID}_${name}`];
+      }
+    };
     let receiverInst;
     let senderInst;
     let config;
@@ -52,7 +64,7 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
           popupZoom: 0,
         },
         customConfig);
-        // console.log('Current config', config);
+        // debug('Current config', config);
 
         const ret = Object.assign(obj, {
           /**
@@ -75,9 +87,9 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
      */
     function initReceiver(callback) {
       const receiverWin = window;
-      let activeTab = null;
       let popup = null;
       let previewWin = null;
+      const diff = new diffDOM.DiffDOM();
 
       /**
        * Enables zooming in the preview window.
@@ -139,10 +151,12 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
           const l = zoomCtl.listeners.shift();
           zoomCtl.removeEventListener(l.name, l.func);
         }
+        delete zoomCtl.listeners;
         while (popup.listeners && popup.listeners.length > 0) {
           const l = popup.listeners.shift();
           popup.removeEventListener(l.name, l.func);
         }
+        delete popup.listeners;
       }
 
       /**
@@ -151,6 +165,7 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
        */
       function removePopup() {
         if (popup) {
+          delete popup.init;
           popup.close();
         }
         chrome.extension.getViews({ type: 'tab' }).forEach((v) => {
@@ -163,12 +178,13 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
       /**
        * Creates a new popup window for the markdown preview.
        * @private
+       * @param {number} tabWidth The width of the current tab
        * @param {function} func The function to call when done (optional)
        */
-      function createPopup(func) {
+      function createPopup(tabWidth, func) {
         removePopup();
         const t = 0; // TODO: get actual y offset
-        let w = config.popupWidth || receiverWin.screen.width - activeTab.width;
+        let w = config.popupWidth || receiverWin.screen.width - tabWidth;
         if (w < config.popupMinWidth) w = config.popupMinWidth;
         const h = receiverWin.screen.height;
         const l = (config.popupPosition === 'left') ? 0 : receiverWin.screen.width - w;
@@ -277,8 +293,23 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
       function getDocument(html, currentUrl) {
         const doc = receiverWin.document.createElement('html');
         doc.innerHTML = html.trim();
-        doc.lastChild.style.fontSize = '100%'; // chrome injects a mysterious stylesheet setting body font-size to 75%...
+        doc.querySelector('body').style.fontSize = '100%'; // chrome injects a mysterious stylesheet setting body font-size to 75%...
         return rewriteLinks(doc, currentUrl);
+      }
+
+      /**
+       * Sends an error message to the preview window.
+       * @private
+       * @param {string} url The URL where the error occurred
+       * @param {XMLHTTPRequest} xhr The HTTP request
+       */
+      function sendError(url, xhr) {
+        if (!popup) return;
+        let src = 'error.html';
+        src += url ? `?url=${encodeURIComponent(url)}` : '';
+        src += xhr && xhr.status > -1 ? `&status=${xhr.status}` : '';
+        src += xhr && xhr.statusText ? ` ${encodeURIComponent(xhr.statusText)}` : '';
+        popup.document.getElementById(`${ID}_iframe`).src = src;
       }
 
       // initialize receiver object
@@ -289,17 +320,22 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
          * @return {object} this
          */
         start(tab) {
-          activeTab = tab;
-          createPopup(() => {
+          if (getProp('receiverOn')) return this;
+          setProp('tab', tab);
+          createPopup(tab.width, () => {
+            // initiate data transfer with sender once popup loaded
             chrome.tabs.sendMessage(tab.id, { id: chrome.runtime.id, action: 'send' });
           });
-          // listen for messages from the sender
-          chrome.runtime.onMessage.addListener((data, context) => {
-            if (activeTab && context.id === chrome.runtime.id && context.tab.id === activeTab.id) {
+          const handler = (data, context) => {
+            if (getProp('tab') && context.id === chrome.runtime.id
+              && context.tab.id === getProp('tab').id) {
               this.receive(data);
             }
-          });
-          chrome.runtime[`${ID}_receiverOn`] = true;
+          };
+          // start listening for messages from sender
+          chrome.runtime.onMessage.addListener(handler);
+          setProp('receiverOn', handler);
+          // debug('Receiver started');
           return this;
         },
 
@@ -308,7 +344,7 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
          * @return boolean <code>true</code> if running, else <code>false</code>
          */
         isRunning() {
-          return chrome.runtime[`${ID}_receiverOn`];
+          return getProp('receiverOn');
         },
 
         /**
@@ -316,12 +352,15 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
          * @return {object} this
          */
         stop() {
-          removePopup();
-          if (activeTab) {
-            chrome.tabs.sendMessage(activeTab.id, { id: ID, action: 'stop' });
-            activeTab = null;
+          if (!getProp('receiverOn')) return this;
+          chrome.runtime.onMessage.removeListener(getProp('receiverOn'));
+          if (getProp('tab')) {
+            chrome.tabs.sendMessage(getProp('tab').id, { id: ID, action: 'stop' });
+            setProp('tab', null);
           }
-          chrome.runtime[`${ID}_receiverOn`] = false;
+          removePopup();
+          setProp('receiverOn', null);
+          // debug('Receiver stopped');
           return this;
         },
 
@@ -337,35 +376,34 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
          */
         receive(data) {
           if (!data) {
-            // console.log('No data, abort');
+            // debug('No data, abort');
             return this;
           }
-          if (data.static) {
-            // console.log('Static preview');
-          } else {
-            // console.log('Live preview');
-          }
-          // console.log('Processing data');
+          // debug('Processing data', data);
           if (previewWin) {
             config.helixUrl = getHelixUrl(data.path);
             if (config.helixUrl) {
-              // console.log('Helix rendering');
+              // debug('Helix rendering');
               disableZoom(); // TODO: enable zooming also in Helix mode
               const xhttp = new XMLHttpRequest();
               xhttp.onreadystatechange = (evt) => {
                 const xhr = evt.target;
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                  const newDoc = getDocument(xhr.responseText);
-                  try {
-                    if (!popup[`${ID}_init`]) {
-                      previewWin.document.documentElement.replaceWith(newDoc);
-                      popup[`${ID}_init`] = true;
-                    } else {
-                      const oldBody = previewWin.document.body;
-                      diffDOM.apply(oldBody, diffDOM.diff(oldBody, newDoc.lastChild));
+                if (xhr.readyState === 4) {
+                  if (xhr.status === 200) {
+                    const newDoc = getDocument(xhr.responseText);
+                    try {
+                      if (!popup.init) {
+                        previewWin.document.documentElement.replaceWith(newDoc);
+                        popup.init = true;
+                      } else {
+                        const oldBody = previewWin.document.body;
+                        diff.apply(oldBody, diff.diff(oldBody, newDoc.querySelector('body')));
+                      }
+                    } catch (e) {
+                      // debug('Unable to process Helix output', e);
                     }
-                  } catch (e) {
-                    // console.log('Unable to process Helix output');
+                  } else {
+                    sendError(config.helixUrl, xhr);
                   }
                 }
               };
@@ -377,7 +415,7 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
                 },
               }));
             } else {
-              // console.log('Standalone rendering');
+              // debug('Standalone rendering');
               if (data.baseUrl) {
                 marked.setOptions({
                   baseUrl: data.baseUrl,
@@ -387,11 +425,11 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
               try {
                 previewWin.document.getElementById(ID).innerHTML = md;
               } catch (e) {
-                // console.log('Error while processing markdown', e);
+                // debug('Error while processing markdown', e);
               }
             }
           } else {
-            // console.log('Preview window not found, cleaning up');
+            // debug('Preview window not found, cleaning up');
             return this;
           }
           return this;
@@ -409,7 +447,6 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
       const senderWin = window;
       let data;
       let receiverId;
-      let editor;
 
       /**
        * Checks if the markdown file is static (raw).
@@ -452,12 +489,12 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
        * @private
        */
       function editorChangeListener() {
-        if (!senderWin[`${ID}_timeout`]) {
-          senderWin[`${ID}_timeout`] = senderWin.setTimeout(() => {
+        if (!getProp('timeout')) {
+          setProp('timeout', senderWin.setTimeout(() => {
             // eslint-disable-next-line no-use-before-define
             sendData();
-            senderWin[`${ID}_timeout`] = 0;
-          }, config.pollInterval);
+            setProp('timeout', null);
+          }, config.pollInterval));
         }
       }
 
@@ -467,15 +504,29 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
        * @return {Element} The editor or <code>null</code>
        */
       function getEditor() {
-        const textAreas = senderWin.document.getElementsByTagName('textarea');
-        for (let i = 0; i < textAreas.length; i += 1) {
-          const input = textAreas[i];
-          if (input.name === 'value') {
-            input.addEventListener('change', editorChangeListener);
-            return input;
+        if (!getProp('editor')) {
+          // retrieve markdown from editor
+          const textAreas = senderWin.document.getElementsByTagName('textarea');
+          for (let i = 0; i < textAreas.length; i += 1) {
+            if (textAreas[i].name === 'value') {
+              textAreas[i].onchange = editorChangeListener;
+              setProp('editor', textAreas[i]);
+              break;
+            }
           }
         }
-        return null;
+        return getProp('editor');
+      }
+
+      function unlinkEditor() {
+        if (getProp('editor')) {
+          getProp('editor').onchange = null;
+          setProp('editor', null);
+        }
+      }
+
+      function setReceiverId(id) {
+        receiverId = id;
       }
 
       /**
@@ -489,18 +540,14 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
           try {
             return senderWin.document.body.innerText;
           } catch (e) {
-            // console.log('Error while retrieving raw markdown', e);
+            // debug('Error while retrieving raw markdown', e);
           }
         } else {
           // github is in edit mode
-          // retrieve markdown from editor
-          if (!editor) {
-            editor = getEditor();
-          }
           try {
-            return editor.value ? editor.value : '\n';
+            return getEditor().value;
           } catch (e) {
-            // console.log('Error while retrieving markdown from DOM', e);
+            // debug('Error while retrieving markdown from DOM', e);
           }
         }
         return '\n';
@@ -536,15 +583,18 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
          * @return {object} this
          */
         start() {
-          chrome.runtime.onMessage.addListener(({ id, action }) => {
+          if (getProp('senderOn')) return this;
+          const handler = ({ id, action }) => {
             if (action === 'send') {
               this.send(id);
             }
             if (action === 'stop') {
               this.stop();
             }
-          });
-          chrome.runtime[`${ID}_senderOn`] = true;
+          };
+          chrome.runtime.onMessage.addListener(handler);
+          setProp('senderOn', handler);
+          // debug('Sender started');
           return this;
         },
 
@@ -553,7 +603,7 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
          * @return boolean <code>true</code> if running, else <code>false</code>
          */
         isRunning() {
-          return chrome.runtime[`${ID}_senderOn`];
+          return getProp('senderOn');
         },
 
         /**
@@ -562,7 +612,7 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
          * @return {object} this
          */
         send(id) {
-          receiverId = id;
+          setReceiverId(id);
           sendData();
           return this;
         },
@@ -572,12 +622,12 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
          * @return {object} this
          */
         stop() {
-          if (editor) {
-            editor.removeEventListener('change', editorChangeListener);
-            editor = null;
-          }
-          receiverId = null;
-          chrome.runtime[`${ID}_senderOn`] = false;
+          if (!getProp('senderOn')) return this;
+          chrome.runtime.onMessage.removeListener(getProp('senderOn'));
+          unlinkEditor();
+          setReceiverId(null);
+          setProp('senderOn', null);
+          // debug('Sender stopped');
           return this;
         },
       },
@@ -587,6 +637,7 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
     return {
       /**
        * Returns an instance of <code>HelixMarkdownPreview.Receiver</code>.
+       * The receiver runs in the background window of the extension.
        * @static
        * @param {function} callback The function to call when done (optional)
        */
@@ -599,6 +650,7 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
 
       /**
        * Returns an instance of <code>HelixMarkdownPreview.Sender</code>.
+       * The sender runs in the content window.
        * @static
        * @param {function} callback The function to call when done (optional)
        */

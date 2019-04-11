@@ -14,7 +14,7 @@
 	"background": {
 		"scripts": [
 			"./lib/marked.min.js",
-			"./lib/diffDOM.min.js",
+			"./lib/diffDOM.js",
 			"HelixMarkdownPreview.js",
 			"background.js"
 		],
