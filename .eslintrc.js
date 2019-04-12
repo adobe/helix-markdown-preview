@@ -26,6 +26,7 @@ module.exports = {
     },
     'globals': {
       'HelixMarkdownPreview': true,
+      'window': true,
       'chrome': true,
       'diffDOM': true,
       'marked': true,

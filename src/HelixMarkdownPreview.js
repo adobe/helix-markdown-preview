@@ -35,7 +35,23 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
     };
     let receiverInst;
     let senderInst;
-    let config;
+    let config = {
+      urlFilters: [{
+        hostSuffix: 'github.com',
+        pathContains: '/edit/',
+        pathSuffix: '.md',
+      }, {
+        hostEquals: 'raw.githubusercontent.com',
+        pathSuffix: '.md',
+      }],
+      gitBranch: 'master',
+      helixRendering: false,
+      helixBaseUrl: null,
+      pollInterval: 500,
+      popupMinWidth: 500,
+      popupPosition: 'right',
+      popupZoom: 0,
+    };
 
     /**
      * Initializes the configuration and returns the specified object.
@@ -43,38 +59,20 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
      * @param {function} callback The function to call when done (optional)
      */
     function initInstance(obj, callback) {
+      const ret = Object.assign(obj, {
+        /**
+         * The common ID used to identify windows and elements related to this extension.
+         * @return {string} The ID
+         */
+        get ID() {
+          return ID;
+        },
+      });
+
       // load default config and overrides from storage
       chrome.storage.sync.get(null, (customConfig) => {
-        // defaults
-        config = Object.assign({
-          urlFilters: [{
-            hostSuffix: 'github.com',
-            pathContains: '/edit/',
-            pathSuffix: '.md',
-          }, {
-            hostEquals: 'raw.githubusercontent.com',
-            pathSuffix: '.md',
-          }],
-          gitBranch: 'master',
-          helixRendering: false,
-          helixBaseUrl: null,
-          pollInterval: 500,
-          popupMinWidth: 500,
-          popupPosition: 'right',
-          popupZoom: 0,
-        },
-        customConfig);
-        // debug('Current config', config);
-
-        const ret = Object.assign(obj, {
-          /**
-           * The common ID used to identify windows and elements related to this extension.
-           * @return {string} The ID
-           */
-          get ID() {
-            return ID;
-          },
-        });
+        // custom config overrides
+        config = Object.assign(config, customConfig);
         if (callback) callback(ret);
         return ret;
       });
@@ -662,4 +660,10 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
       },
     };
   }());
+}
+
+try {
+  module.exports = window.HelixMarkdownPreview;
+} catch (e) {
+  // ignore
 }

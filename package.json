@@ -4,7 +4,7 @@
   "description": "",
   "main": "background.js",
   "scripts": {
-    "test": "nyc nyc --reporter=lcov mocha --exit",
+    "test": "nyc --reporter=text --reporter=lcov mocha",
     "lint": "npx eslint ."
   },
   "repository": "https://github.com/rofe/helix-markdown-preview",
@@ -16,6 +16,13 @@
     "eslint-plugin-header": "^3.0.0",
     "eslint-plugin-import": "^2.16.0",
     "eslint-plugin-jsx-a11y": "^6.1.1",
-    "eslint-plugin-react": "^7.11.0"
+    "eslint-plugin-react": "^7.11.0",
+    "mocha": "^6.1.2",
+    "mock-browser": "^0.92.14",
+    "sinon-chrome": "^3.0.1"
+  },
+  "nyc": {
+    "include": "src",
+    "exclude": "src/lib/*.js"
   }
 }
