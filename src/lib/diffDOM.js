@@ -617,3 +617,9 @@ var diffDOM = function (e) {
       return this.padding = "", e = this.format(e, this.tick), this.padding = t, this.messages.join("\n") + "\n" + e
   }, e.DiffDOM = y, e.TraceLogger = w, e
 }({});
+
+try {
+  module.exports = diffDOM;
+} catch (e) {
+  // ignore
+}
