@@ -17,28 +17,28 @@ global.chrome = require('sinon-chrome');
 const { MockBrowser } = require('mock-browser').mocks;
 const assert = require('assert');
 
-describe('HelixMarkdownPreview - options', () => {
-  it('config: uses live update interval', () => {
+describe('HelixMarkdownPreview - options (WIP)', () => {
+  it.skip('config: uses live update interval', () => {
     // todo
   });
 
-  it('config: uses width correctly', () => {
+  it.skip('config: uses width correctly', () => {
     // todo
   });
 
-  it('config: respects minimum width', () => {
+  it.skip('config: respects minimum width', () => {
     // todo
   });
 
-  it('config: uses zoom factor', () => {
+  it.skip('config: uses zoom factor', () => {
     // todo
   });
 
-  it('config: uses position', () => {
+  it.skip('config: uses position', () => {
     // todo
   });
 
-  it('config: uses factory defaults', () => {
+  it.skip('config: uses factory defaults after reset', () => {
     // todo
   });
 });

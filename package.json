@@ -4,21 +4,29 @@
   "description": "",
   "main": "background.js",
   "scripts": {
-    "test": "nyc --reporter=text --reporter=lcov mocha",
+    "test": "nyc --reporter=text --reporter=lcov mocha --exclude=test/integration/*.js",
+    "integration": "nyc --reporter=text --reporter=lcov mocha test/integration/*.js --timeout 5000",
+    "it": "npm run integration",
     "lint": "npx eslint ."
   },
   "repository": "https://github.com/rofe/helix-markdown-preview",
   "author": "",
   "license": "Apache-2.0",
   "devDependencies": {
-    "eslint": "^5.15.3",
+    "chai": "^4.2.0",
+    "eslint": "^5.16.0",
     "eslint-config-airbnb": "^17.1.0",
     "eslint-plugin-header": "^3.0.0",
     "eslint-plugin-import": "^2.16.0",
     "eslint-plugin-jsx-a11y": "^6.1.1",
     "eslint-plugin-react": "^7.11.0",
-    "mocha": "^6.1.2",
+    "fs-extra": "^7.0.1",
+    "jsdom": "^14.0.0",
+    "mocha": "^6.1.3",
     "mock-browser": "^0.92.14",
+    "puppeteer": "^1.14.0",
+    "puppeteer-to-istanbul": "^1.2.2",
+    "sinon": "^7.3.1",
     "sinon-chrome": "^3.0.1"
   },
   "nyc": {

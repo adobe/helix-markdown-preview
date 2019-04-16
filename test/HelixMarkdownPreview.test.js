@@ -33,14 +33,14 @@ afterEach(() => {
   delete global.window;
 });
 
-describe('HelixMarkdownPreview - unit tests', () => {
-  it.only('is a global object with static functions', () => {
+describe('HelixMarkdownPreview', () => {
+  it('is a global object with static functions', () => {
     assert.equal(typeof HelixMarkdownPreview, 'object');
     assert.equal(typeof HelixMarkdownPreview.getReceiver, 'function');
     assert.equal(typeof HelixMarkdownPreview.getSender, 'function');
   });
 
-  it.only('starts and stops sender', () => {
+  it('starts and stops sender', () => {
     HelixMarkdownPreview.getSender((sender) => {
       sender.start();
       assert.ok(sender.isRunning());
@@ -48,7 +48,7 @@ describe('HelixMarkdownPreview - unit tests', () => {
     });
   });
 
-  it.only('starts and stops receiver', () => {
+  it('starts and stops receiver', () => {
     HelixMarkdownPreview.getReceiver((receiver) => {
       const tab = { id: 123, width: 1024 };
       receiver.start(tab);
@@ -56,23 +56,5 @@ describe('HelixMarkdownPreview - unit tests', () => {
       assert.deepEqual(chrome.runtime.HelixMarkdownPreview_tab1, tab);
       receiver.stop();
     });
-  });
-
-  it('sender and receiver communicate', () => {
-    window.location.href = 'https://raw.githubusercontent.com/rofe/helix-markdown-preview/master/README.md';
-    const sender = HelixMarkdownPreview.getSender();
-    setTimeout(() => {
-      sender.start();
-      assert.ok(sender.isRunning());
-      sender.stop();
-    }, 1000);
-
-    const receiver = HelixMarkdownPreview.getReceiver();
-    setTimeout(() => {
-      const tab = { id: 123, width: 1024 };
-      receiver.start(tab);
-      assert.ok(receiver.isRunning());
-      receiver.stop();
-    }, 1000);
   });
 });
