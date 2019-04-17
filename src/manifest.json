@@ -6,10 +6,12 @@
 	"description": "Live preview of markdown files while editing.",
 	"permissions": [
 		"storage",
-		"declarativeContent",
-		"activeTab",
+    "tabs",
+    "activeTab",
     "http://localhost:3000/*",
-    "http://127.0.0.1:3000/*"
+    "http://127.0.0.1:3000/*",
+    "https://raw.githubusercontent.com/*",
+    "https://github.com/*"
   ],
 	"background": {
 		"scripts": [
@@ -20,8 +22,8 @@
 		],
 		"persistent": false
 	},
-	"page_action": {
-		"default_title": "Click to show preview",
+	"browser_action": {
+    "default_title": "Click to show preview",
 		"default_icon": {
 			"16": "./images/helix_logo_16.png",
 			"32": "./images/helix_logo_32.png",
