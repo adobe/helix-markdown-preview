@@ -51,8 +51,9 @@ describe('background page (WIP)', () => {
   });
 
   it('should attach listeners on startup', () => {
-    sinon.calledOnce(chrome.runtime.onInstalled.addListener);
-    sinon.calledOnce(chrome.pageAction.onClicked.addListener);
+    sinon.calledOnce(chrome.tabs.onActivated.addListener);
+    sinon.calledOnce(chrome.tabs.onUpdated.addListener);
+    sinon.calledOnce(chrome.browserAction.onClicked.addListener);
   });
 
   it('should have a HelixMarkdownPreview object', () => {

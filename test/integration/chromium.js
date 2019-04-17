@@ -17,30 +17,31 @@ const fs = require('fs-extra');
 const puppeteer = require('puppeteer');
 const pti = require('puppeteer-to-istanbul');
 const path = require('path');
-const assert = require('assert');
+const { assert } = require('chai');
 
 const testUrlRaw = 'https://raw.githubusercontent.com/rofe/helix-markdown-preview/master/README.md';
 const extensionPath = path.join(__dirname, '../../src');
-
-const scripts = [
-  fs.readFileSync(path.join(__dirname, '../../src/lib/marked.min.js'), 'utf-8').toString(),
-  fs.readFileSync(path.join(__dirname, '../../src/lib/diffDOM.js'), 'utf-8').toString(),
-  fs.readFileSync(path.join(__dirname, '../../src/HelixMarkdownPreview.js'), 'utf-8').toString(),
-  fs.readFileSync(path.join(__dirname, '../../src/background.js'), 'utf-8').toString(),
+const allCoverage = [];
+const manifest = JSON.parse(fs.readFileSync(path.join(extensionPath, '/manifest.json')));
+const contentScripts = [
+  fs.readFileSync(path.join(extensionPath, '/HelixMarkdownPreview.js'), 'utf-8').toString(),
+  fs.readFileSync(path.join(extensionPath, '/content.js'), 'utf-8').toString(),
 ];
 
 let browser;
 let testPage;
-const allCoverage = [];
+let bgPage;
 
 function cleanUp() {
   browser = null;
   testPage = null;
+  bgPage = null;
 }
 
 async function getBackgroundPage() {
   const targets = await browser.targets();
-  const target = targets.find(({ _targetInfo }) => _targetInfo.type === 'background_page');
+  const target = targets.find(({ _targetInfo }) => _targetInfo.title === manifest.name
+    && _targetInfo.type === 'background_page');
   const page = await target.page();
   return page;
 }
@@ -48,21 +49,20 @@ async function getBackgroundPage() {
 describe('HelixMarkdownPreview integration test (WIP)', () => {
   beforeEach(async () => {
     browser = await puppeteer.launch({
-      headless: false, // extensions can't be tested in headless mode
+      // slowMo: 100,
+      devtools: true,
       args: [
         `--disable-extensions-except=${extensionPath}`,
         `--load-extension=${extensionPath}`,
-        '--auto-open-devtools-for-tabs',
-        '--error-console',
-        '--enable-logging',
       ],
     });
     const extPage = await browser.newPage();
-    extPage.goto('chrome://extensions');
+    await extPage.goto('chrome://extensions');
     testPage = await browser.newPage();
     await Promise.all([
       testPage.coverage.startJSCoverage({ resetOnNavigation: false, reportAnonymousScripts: true }),
     ]);
+    bgPage = await getBackgroundPage();
   });
 
   afterEach(async () => {
@@ -78,20 +78,17 @@ describe('HelixMarkdownPreview integration test (WIP)', () => {
   });
 
   it.only('with raw markdown page', async () => {
-    await testPage.goto(testUrlRaw, { waitUntil: 'networkidle2' });
-    const bgp = await getBackgroundPage();
-    scripts.forEach(async (script) => {
-      await bgp.evaluate(script);
-    });
-    setTimeout(async () => {
-      assert.equal(await bgp.evaluate('typeof window.HelixMarkdownPreview'), 'object');
-      const currentTab = await testPage.evaluate('chrome.tabs.getCurrent(tab => return tab;});');
-      // "click" page action for current tab
-      await bgp.evaluate(`chrome.pageAction.onClicked.dispatch({id:${currentTab.id}});`);
-    }, 2000);
-    setTimeout(() => {
-      // wait 2 seconds for done to be called, then fail
+    const t = setTimeout(() => {
+      // fail the test if it is taking too long
       assert.fail('This took longer than 5s.');
     }, 5000);
+    await testPage.goto(testUrlRaw, { waitUntil: 'networkidle2' });
+    assert.equal(await bgPage.evaluate('typeof HelixMarkdownPreview'), 'object', 'background page is supposed to have a HelixMarkdownPreview object');
+    contentScripts.forEach(async (script) => {
+      await testPage.evaluateHandle(script);
+    });
+    await bgPage.evaluate('HelixMarkdownPreview.getReceiver(receiver => receiver.start())');
+    assert.equal(await testPage.evaluate('typeof HelixMarkdownPreview'), 'object', 'content page is supposed to have a HelixMarkdownPreview object');
+    clearTimeout(t);
   });
 });

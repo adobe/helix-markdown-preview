@@ -36,8 +36,10 @@ class PageActionTester {
     // "click" pageAction to trigger extension
     chrome.pageAction.onClicked.dispatch(tab);
     chrome.pageAction.show(tab.id, () => {
-      // check if receiver is on
-      assert.isTrue(chrome.runtime.HelixMarkdownPreview_receiverOn);
+      // check if popup is shown
+      chrome.extension.getViews({ type: 'popup' }, (views) => {
+        assert.isAtLeast(views.length, 1, 'popup expected');
+      });
       this._next(tab);
     });
   }
