@@ -22,7 +22,7 @@ Stay tuned...
 ## Usage
 
 ### Preview as you type (standalone mode only for now)
-1. Navigate to a markdown (*.md) file on `github.com`.
+1. Navigate to a markdown (\*.md) file on `github.com`.
 2. Switch to edit mode. Notice that the Helix icon is colored now:<br />
 ![Extension icon enabled](src/images/helix_logo_16.png)
 3. Click the Helix icon in the tool bar.
@@ -30,7 +30,7 @@ Stay tuned...
 5. Edit the markdown and observe the changes in the popup.
 
 ### Preview static file
-1. Navigate to a markdown (*.md) file on `github.com`.
+1. Navigate to a markdown (\*.md) file on `github.com`.
 2. Click the _Raw_ button. Notice that the Helix icon is colored now:<br />
 ![Extension icon enabled](src/images/helix_logo_16.png)
 3. Click the Helix icon in the tool bar.
@@ -40,7 +40,7 @@ Stay tuned...
 By default, the markdown will be previewed in standalone, client-sided mode. In order to let a local Helix server render the markdown, follow these steps:
 
 1. Start a local Helix server (see [www.project-helix.io](https://www.project-helix.io) how to set it up).
-2. Open the project on `github.com` and start editing a markdown (*.md) file.
+2. Navigate to a markdown (\*.md) file in the corresponding repository on `github.com`.
 3. Right-click the Helix icon in the toolbar and select 'Options'.
 4. Click the checkbox to use Helix rendering.
 5. Provide the base URL of your Helix instance (e.g. `http://localhost:3000`).
