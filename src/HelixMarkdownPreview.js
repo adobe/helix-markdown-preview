@@ -70,12 +70,16 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
       });
 
       // load default config and overrides from storage
-      chrome.storage.sync.get(null, (customConfig) => {
-        // custom config overrides
-        config = Object.assign(config, customConfig);
-        if (callback) callback(ret);
-        return ret;
-      });
+      try {
+        chrome.storage.sync.get(null, (customConfig) => {
+          // custom config overrides
+          config = Object.assign(config, customConfig);
+          if (callback) callback(ret);
+          return ret;
+        });
+      } catch (e) {
+        // console.log('Error loading overrides', e);
+      }
     }
 
     /**
