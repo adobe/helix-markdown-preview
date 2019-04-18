@@ -60,7 +60,10 @@ describe('HelixMarkdownPreview integration test (WIP)', () => {
     await extPage.goto('chrome://extensions');
     testPage = await browser.newPage();
     await Promise.all([
-      testPage.coverage.startJSCoverage({ resetOnNavigation: false, reportAnonymousScripts: true }),
+      testPage.coverage.startJSCoverage({
+        resetOnNavigation: false,
+        reportAnonymousScripts: true,
+      }),
     ]);
     bgPage = await getBackgroundPage();
   });
@@ -80,8 +83,8 @@ describe('HelixMarkdownPreview integration test (WIP)', () => {
   it.only('with raw markdown page', async () => {
     const t = setTimeout(() => {
       // fail the test if it is taking too long
-      assert.fail('This took longer than 5s.');
-    }, 5000);
+      assert.fail('This took longer than 30s.');
+    }, 30000);
     await testPage.goto(testUrlRaw, { waitUntil: 'networkidle2' });
     assert.equal(await bgPage.evaluate('typeof HelixMarkdownPreview'), 'object', 'background page is supposed to have a HelixMarkdownPreview object');
     contentScripts.forEach(async (script) => {

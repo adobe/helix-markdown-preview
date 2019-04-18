@@ -30,13 +30,13 @@ function checkTab(tabId) {
           return;
         }
         // enable extension if markdown editor
-        if (tab.url.match(/^https:\/\/.*github\.com\/.*\/edit\/.*\.md$/)) {
+        if (tab.url.match(/^https:\/\/.*github\.com\/.*\/.*\/edit\/.*\.md$/)) {
           chrome.browserAction.enable(tab.id);
           chrome.browserAction.setTitle({ title: 'Click to show live preview', tabId });
           return;
         }
         // provide badge with hint if blob view
-        if (tab.url.match(/^https:\/\/.*github\.com\/.*\/blob\/.*\.md$/)) {
+        if (tab.url.match(/^https:\/\/.*github\.com\/.*\/.*\/blob\/.*\.md$/)) {
           chrome.browserAction.setBadgeText({ text: '?', tabId });
           chrome.browserAction.setBadgeBackgroundColor({ color: '#c3003c', tabId });
           chrome.browserAction.setTitle({ title: 'Switch to raw or start editing to enable preview', tabId });

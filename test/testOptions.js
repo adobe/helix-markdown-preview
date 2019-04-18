@@ -13,32 +13,32 @@
 
 'use strict';
 
-global.chrome = require('sinon-chrome');
-const { MockBrowser } = require('mock-browser').mocks;
-const assert = require('assert');
+// global.chrome = require('sinon-chrome');
+// const { MockBrowser } = require('mock-browser').mocks;
+// const assert = require('assert');
 
-describe('HelixMarkdownPreview - options (WIP)', () => {
-  it.skip('config: uses live update interval', () => {
+describe.skip('HelixMarkdownPreview - options (WIP)', () => {
+  it('config: uses live update interval', () => {
     // todo
   });
 
-  it.skip('config: uses width correctly', () => {
+  it('config: uses width correctly', () => {
     // todo
   });
 
-  it.skip('config: respects minimum width', () => {
+  it('config: respects minimum width', () => {
     // todo
   });
 
-  it.skip('config: uses zoom factor', () => {
+  it('config: uses zoom factor', () => {
     // todo
   });
 
-  it.skip('config: uses position', () => {
+  it('config: uses position', () => {
     // todo
   });
 
-  it.skip('config: uses factory defaults after reset', () => {
+  it('config: uses factory defaults after reset', () => {
     // todo
   });
 });

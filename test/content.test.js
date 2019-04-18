@@ -21,7 +21,8 @@ const { assert } = require('chai');
 const { JSDOM } = require('jsdom');
 const { Script } = require('vm');
 
-const testUrlRaw = 'https://raw.githubusercontent.com/rofe/helix-markdown-preview/master/README.md';
+// const testUrlRaw = 'https://raw.githubusercontent.com/rofe/helix-markdown-preview/master/README.md';
+const testUrlEdit = 'https://github.com/rofe/helix-markdown-preview/edit/master/README.md';
 
 describe('content page (WIP)', () => {
   let window;
@@ -33,14 +34,17 @@ describe('content page (WIP)', () => {
   let contentPage;
 
   beforeEach(async () => {
-    contentPage = new JSDOM('<html></html>', {
+    contentPage = await JSDOM.fromURL(testUrlEdit, {
       resources: 'usable',
       runScripts: 'dangerously',
       beforeParse(win) {
         window = win;
       },
     });
-    contentPage.window.chrome = chrome;
+    // contentPage.window.chrome = chrome;
+    scripts.forEach((script) => {
+      contentPage.runVMScript(script);
+    });
   });
 
   afterEach(() => {
@@ -48,21 +52,18 @@ describe('content page (WIP)', () => {
     window.close();
   });
 
-  it.skip('should attach listeners on startup', async () => {
-    scripts.forEach((script) => {
-      contentPage.runVMScript(script);
-    });
-    sinon.calledOnce(chrome.runtime.onMessage.addListener);
-  });
-
-  it.skip('should have a HelixMarkdownPreview object', () => {
+  it('has a HelixMarkdownPreview object', () => {
     assert.isObject(window.HelixMarkdownPreview,
       'HelixMarkdownPreview is a object');
     assert.isFunction(window.HelixMarkdownPreview.getSender,
       'HelixMarkdownPreview has a getSender method');
   });
 
-  it.skip('sends raw markdown', () => {
-    // todo
+  // TODO: callback never called -> evergreen test
+  it('attaches listeners on startup', async () => {
+    window.HelixMarkdownPreview.getSender((sender) => {
+      assert.isTrue(sender.isRunning(), 'sender is expected to be running');
+      sinon.calledOnce(chrome.runtime.onMessage.addListener);
+    });
   });
 });
