@@ -16,45 +16,56 @@ body {
   overflow:hidden;
 }
 
-div.markdown-head {
+div.markdown-chrome {
   display:flex;
   align-items:baseline;
-  color:#CCC;
   font-weight:normal;
   font-family: Arial, Helvetica, sans-serif;
-  font-size:10pt;
   padding:6px 0;
-  height:22px;
   background-color:#333;
+  color:#CCC;
 }
-div.markdown-head > div {
+
+div.markdown-chrome > div {
   padding:0 10px;
 }
 
-div.markdown-head > div.spacer {
+div.markdown-chrome > div.spacer {
   flex-grow: 1;
 }
 
-div.markdown-head > div > a.logo {
+div.markdown-chrome a {
+  color:#CCC;
+  text-decoration:none;
+}
+
+div.markdown-chrome a:hover {
+  text-decoration:underline;
+}
+
+div.markdown-chrome > div > a.logo {
   background:transparent url("images/helix_logo_16.png") center center no-repeat;
   padding:4px 10px;
   text-decoration: none;
   cursor:hand;
 }
 
-div.markdown-head a {
-  color:#CCC;
-  text-decoration:none;
+div.markdown-chrome.head {
+  font-size:12px;
+  height:20px;
 }
 
-div.markdown-head a:hover {
-  text-decoration:underline;
+div.markdown-chrome.foot {
+  height:15px;
+  font-size:10px;
 }
 
 iframe {
   border:none;
+  margin:0;
+  padding:0;
   overflow:hidden;
-  height:100vh;
+  min-height: calc(100vh - 58px);
   width:100wh;
 }
 
