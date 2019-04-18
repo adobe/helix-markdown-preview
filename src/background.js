@@ -20,27 +20,33 @@ if (typeof HelixMarkdownPreview === 'undefined') {
 // check if the provided tab is allowed to use this extension
 // TODO: make configurable?
 function checkTab(tabId) {
-  chrome.tabs.get(tabId, (tab) => {
-    if (tab && tab.url) {
-      // enable extension if raw markdown
-      if (tab.url.match(/^https:\/\/raw\.githubusercontent\.com\/.*\.md$/)) {
-        chrome.browserAction.enable(tab.id);
-        return;
+  try {
+    chrome.tabs.get(tabId, (tab) => {
+      if (tab && tab.url) {
+        // enable extension if raw markdown
+        if (tab.url.match(/^https:\/\/raw\.githubusercontent\.com\/.*\.md$/)) {
+          chrome.browserAction.enable(tab.id);
+          chrome.browserAction.setTitle({ title: 'Click to show static preview', tabId });
+          return;
+        }
+        // enable extension if markdown editor
+        if (tab.url.match(/^https:\/\/.*github\.com\/.*\/edit\/.*\.md$/)) {
+          chrome.browserAction.enable(tab.id);
+          chrome.browserAction.setTitle({ title: 'Click to show live preview', tabId });
+          return;
+        }
+        // provide badge with hint if blob view
+        if (tab.url.match(/^https:\/\/.*github\.com\/.*\/blob\/.*\.md$/)) {
+          chrome.browserAction.setBadgeText({ text: '?', tabId });
+          chrome.browserAction.setBadgeBackgroundColor({ color: '#c3003c', tabId });
+          chrome.browserAction.setTitle({ title: 'Switch to raw or start editing to enable preview', tabId });
+        }
       }
-      // enable extension if markdown editor
-      if (tab.url.match(/^https:\/\/.*github\.com\/.*\/edit\/.*\.md$/)) {
-        chrome.browserAction.enable(tab.id);
-        return;
-      }
-      // provide badge with hint if blob view
-      if (tab.url.match(/^https:\/\/.*github\.com\/.*\/blob\/.*\.md$/)) {
-        chrome.browserAction.setBadgeText({ text: '?', tabId });
-        chrome.browserAction.setBadgeBackgroundColor({ color: '#c3003c', tabId });
-        chrome.browserAction.setTitle({ title: 'Start editing to enable markdown preview', tabId });
-      }
-    }
-    chrome.browserAction.disable(tabId);
-  });
+      chrome.browserAction.disable(tabId);
+    });
+  } catch (e) {
+    // ignore
+  }
 }
 
 // listen for tab changes on check eligibility

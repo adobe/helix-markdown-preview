@@ -1,7 +1,8 @@
 {
 	"manifest_version": 2,
 	"name": "Helix Markdown Preview",
-	"version": "0.1",
+  "version": "0.1",
+  "homepage_url": "https://github.com/rofe/helix-markdown-preview",
 	"options_page": "options.html",
 	"description": "Live preview of markdown files while editing.",
 	"permissions": [
@@ -9,9 +10,7 @@
     "tabs",
     "activeTab",
     "http://localhost:3000/*",
-    "http://127.0.0.1:3000/*",
-    "https://raw.githubusercontent.com/*",
-    "https://github.com/*"
+    "http://127.0.0.1:3000/*"
   ],
 	"background": {
 		"scripts": [
@@ -23,7 +22,7 @@
 		"persistent": false
 	},
 	"browser_action": {
-    "default_title": "Click to show preview",
+    "default_title": "Navigate to a markdown (*.md) file on GitHub to enable preview",
 		"default_icon": {
 			"16": "./images/helix_logo_16.png",
 			"32": "./images/helix_logo_32.png",
