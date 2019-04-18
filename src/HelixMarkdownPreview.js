@@ -273,7 +273,15 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
             e.src = rewriteLink(e.src);
           }
           if (e.href) {
-            e.href = rewriteLink(e.href);
+            if (e.tagName.toLowerCase() === 'a') {
+              // disable clickable links
+              e.href = '#';
+              e.addEventListener('click', (evt) => {
+                evt.preventDefault();
+              });
+            } else {
+              e.href = rewriteLink(e.href);
+            }
           }
           if (elem.srcset) {
             const srcSet = e.srcset.split(',');
@@ -425,7 +433,7 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
               }
               const md = marked(data.markdown);
               try {
-                previewWin.document.getElementById(ID).innerHTML = md;
+                previewWin.document.getElementById(ID).innerHTML = getDocument(md).innerHTML;
               } catch (e) {
                 // debug('Error while processing markdown', e);
               }
