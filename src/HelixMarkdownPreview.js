@@ -74,6 +74,9 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
         chrome.storage.sync.get(null, (customConfig) => {
           // custom config overrides
           config = Object.assign(config, customConfig);
+          if (config.helixBaseUrl.endsWith('/')) {
+            config.helixBaseUrl = config.helixBaseUrl.substring(0, config.helixBaseUrl.lastIndexOf('/'));
+          }
           if (callback) callback(ret);
           return ret;
         });
