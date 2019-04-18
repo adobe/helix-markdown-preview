@@ -37,8 +37,9 @@ Stay tuned...
 4. A popup opens, showing the rendered output.
 5. Edit the markdown and observe the changes in the popup.
 
+The zoom factor in the preview window is adjusted automatically to the window size. You can also set it manually using the dropdown at the top right.
 
-## 3. Helix Configuration
+### 2.3 Helix Configuration
 
 By default, markdown will be rendered in standalone mode in your browser. In order to let a Helix server render the markdown, follow these steps:
 
