@@ -54,7 +54,7 @@ By default, markdown will be rendered in standalone mode in your browser. In ord
 
 Non-local Helix servers are currently not supported.
 
-## 4. 3rd party dependencies
+## 3rd party dependencies
 
 Helix Markdown Preview uses the following libraries:
 * [Marked](https://github.com/markedjs/marked) JS library to render markdown in the preview ([MIT License](https://opensource.org/licenses/MIT))
