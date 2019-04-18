@@ -5,7 +5,7 @@
   "main": "background.js",
   "scripts": {
     "test": "nyc --reporter=text --reporter=lcov mocha --exclude=test/integration/*.js",
-    "integration": "nyc --reporter=text --reporter=lcov mocha test/integration/*.js --timeout 5000",
+    "integration": "nyc --reporter=text --reporter=lcov mocha test/integration/*.js --timeout 30000",
     "it": "npm run integration",
     "lint": "npx eslint ."
   },
