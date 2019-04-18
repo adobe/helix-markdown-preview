@@ -43,7 +43,8 @@ Stay tuned...
 By default, markdown will be rendered in standalone mode in your browser. In order to let a Helix server render the markdown, follow these steps:
 
 1. Start a local Helix server. See [www.project-helix.io](https://www.project-helix.io) how to set it up.
-2. Open a new browser window, click the grayed out Helix icon in the toolbar and select _Options_.
+2. Open a new browser window, click the grayed out Helix icon in the toolbar and select _Options_:<br />
+![Context menu - Options](doc/contextmenu_options.png)
 3. Click the checkbox to enable Helix rendering.
 4. Provide the base URL of your Helix server, e.g. `http://localhost:3000`.
 5. Navigate to a markdown (\*.md) file, e.g. `index.md`, in your project's repository on GitHub. In theory, you can use any markdown file from any repository, as long as the file path can be matched on your Helix server.
