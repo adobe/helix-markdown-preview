@@ -19,9 +19,9 @@ const chrome = require('sinon-chrome/extensions');
 const { assert } = require('chai');
 
 /**
- * Test the extension's page action
+ * Tests the extension
  */
-class PageActionTester {
+class ExtensionTester {
   _next(tab) {
     if (this._assertStack.length > 0) {
       // call next function in stack
@@ -32,16 +32,16 @@ class PageActionTester {
     }
   }
 
-  _assertPageAction(tab) {
-    // "click" pageAction to trigger extension
-    chrome.pageAction.onClicked.dispatch(tab);
-    chrome.pageAction.show(tab.id, () => {
+  _assertBrowserAction(tab) {
+    chrome.browserAction.onClicked.addListener(tab, () => {
       // check if popup is shown
       chrome.extension.getViews({ type: 'popup' }, (views) => {
         assert.isAtLeast(views.length, 1, 'popup expected');
       });
       this._next(tab);
     });
+    // "click" browserAction to trigger extension
+    chrome.browserAction.onClicked.trigger(tab);
   }
 
   _assertReceiver(tab) {
@@ -53,7 +53,7 @@ class PageActionTester {
   }
 
   _assertPopup(tab) {
-    chrome.pageAction.getPopup({ tabId: tab.id }, (res) => {
+    chrome.browserAction.getPopup({ tabId: tab.id }, (res) => {
       // check popup HTML
       assert.equal(res, fs.readFileSync(path.join(__dirname, '../src/popup.html')));
       this._next(tab);
@@ -75,7 +75,7 @@ class PageActionTester {
     this._callback = callback;
     this._activeTab = null;
     chrome.tabs.onUpdated.addListener(tab => this.handleEvent(tab));
-    chrome.tabs.onUpdated.dispatch({ url: this._url, id: 1 });
+    chrome.tabs.onUpdated.trigger({ url: this._url, id: 1 });
   }
 
   handleEvent(tab) {
@@ -105,5 +105,5 @@ class PageActionTester {
 }
 
 module.exports = {
-  PageActionTester,
+  ExtensionTester,
 };

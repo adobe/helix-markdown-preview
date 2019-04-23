@@ -15,7 +15,7 @@
 
 const fs = require('fs-extra');
 const path = require('path');
-const sinon = require('sinon').assert;
+const sinon = require('sinon');
 const chrome = require('sinon-chrome/extensions');
 const { assert } = require('chai');
 const { JSDOM } = require('jsdom');
@@ -48,9 +48,9 @@ describe('background page (WIP)', () => {
   });
 
   it('attaches listeners on startup', () => {
-    sinon.calledOnce(chrome.tabs.onActivated.addListener);
-    sinon.calledOnce(chrome.tabs.onUpdated.addListener);
-    sinon.calledOnce(chrome.browserAction.onClicked.addListener);
+    sinon.assert.calledOnce(chrome.tabs.onActivated.addListener);
+    sinon.assert.calledOnce(chrome.tabs.onUpdated.addListener);
+    sinon.assert.calledOnce(chrome.browserAction.onClicked.addListener);
   });
 
   it('has a HelixMarkdownPreview object', () => {
@@ -58,47 +58,52 @@ describe('background page (WIP)', () => {
       'HelixMarkdownPreview is a object');
     assert.isFunction(window.HelixMarkdownPreview.getReceiver,
       'HelixMarkdownPreview has a getReceiver method');
+    assert.isFunction(window.checkTab,
+      'checkTab is a function');
   });
 
   // TODO: callback never called -> evergreen test
   it('keeps browser action disabled if non-markdown URL', () => {
-    chrome.tabs.create({
+    const spy = sinon.spy(window.checkTab);
+    chrome.tabs.onCreated.trigger({
+      id: 1234,
       url: 'https://github.com/rofe/helix-markdown-preview',
     }, (tab) => {
-      sinon.calledOnce(chrome.tabs.onActivated.addListener);
-      sinon.calledOnce(chrome.browserAction.disable, { id: tab.id });
-      sinon.neverCalledWith(chrome.browserAction.enable, { id: tab.id });
+      sinon.assert.called(spy);
+      sinon.assert.calledWith(chrome.browserAction.disable, { id: tab.id });
+      sinon.assert.neverCalled(chrome.browserAction.enable);
     });
   });
 
   // TODO: callback never called -> evergreen test
   it('keeps browser action disabled and shows tooltip if github markdown (blob view)', () => {
-    chrome.tabs.create({
+    chrome.tabs.onCreated.trigger({
+      id: 1234,
       url: 'https://github.com/rofe/helix-markdown-preview/blob/master/README.md',
     }, (tab) => {
-      sinon.calledOnce(chrome.browserAction.show);
-      sinon.calledWith(chrome.browserAction.disable, { id: tab.id });
-      sinon.neverCalledWith(chrome.browserAction.enable, { id: tab.id });
+      sinon.assert.calledOnce(chrome.browserAction.show);
+      sinon.assert.calledWith(chrome.browserAction.disable, { id: tab.id });
+      sinon.assert.neverCalled(chrome.browserAction.enable);
     });
   });
 
   // TODO: callback never called -> evergreen test
   it('enables browser action if github markdown (edit view)', () => {
-    chrome.tabs.create({
+    chrome.tabs.onCreated.trigger({
       url: 'https://github.com/rofe/helix-markdown-preview/edit/master/README.md',
     }, (tab) => {
-      sinon.calledWith(chrome.browserAction.enable, { id: tab.id });
-      sinon.neverCalledWith(chrome.browserAction.disable, { id: tab.id });
+      sinon.assert.calledWith(chrome.browserAction.enable, { id: tab.id });
+      sinon.assert.neverCalledWith(chrome.browserAction.disable, { id: tab.id });
     });
   });
 
   // TODO: callback never called -> evergreen test
   it('enables browser action if raw github markdown file', () => {
-    chrome.tabs.create({
+    chrome.tabs.onCreated.trigger({
       url: 'https://raw.githubusercontent.com/rofe/helix-markdown-preview/master/README.md',
     }, (tab) => {
-      sinon.calledWith(chrome.browserAction.enable, { id: tab.id });
-      sinon.neverCalledWith(chrome.browserAction.disable, { id: tab.id });
+      sinon.assert.calledWith(chrome.browserAction.enable, { id: tab.id });
+      sinon.assert.neverCalledWith(chrome.browserAction.disable, { id: tab.id });
     });
   });
 });
