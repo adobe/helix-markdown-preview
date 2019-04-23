@@ -1,4 +1,7 @@
 # Helix Markdown Preview
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/adobe/helix-markdown-preview.svg)](https://greenkeeper.io/)
+
 Google Chrome Extension to preview markdown files on GitHub, either static or live as you type. It can have markdown rendered standalone, or using Helix.
 
 ## 1. Installation
