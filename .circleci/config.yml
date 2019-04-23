@@ -38,12 +38,13 @@ jobs:
         name: Lint
         command: npm run lint
 
-    # test & get code coverage
+      # test & get code coverage
     - run:
-        name: Getting Code Coverage
-        command: circleci tests glob test/test*.js | circleci tests split --split-by=timings | xargs ./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha -- -R mocha-junit-reporter --exit && npx codecov
+        name: Test and Code Coverage
+        command: npm run test-ci
         environment:
           MOCHA_FILE: junit/test-results.xml
+
 
     - store_test_results:
         path: junit
@@ -56,11 +57,6 @@ jobs:
 
     steps:
     - setup
-
-    # uncomment and add proper fingerprint of the github.com R/W private key
-    #- add_ssh_keys:
-    #    fingerprints:
-    #    - "6c:30:89:4d:a5:0f:8a:89:a7:4d:bb:98:d3:59:c4:f7"
 
     - run:
         name: revert changes to package-lock.json
