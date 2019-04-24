@@ -1,6 +1,11 @@
 # Helix Markdown Preview
 
+[![codecov](https://img.shields.io/codecov/c/github/adobe/helix-markdown-preview.svg)](https://codecov.io/gh/adobe/helix-markdown-preview)
+[![CircleCI](https://img.shields.io/circleci/project/github/adobe/helix-markdown-preview/master.svg)](https://circleci.com/gh/adobe/helix-markdown-preview/tree/master)
+[![GitHub license](https://img.shields.io/github/license/adobe/helix-markdown-preview.svg)](https://github.com/adobe/helix-markdown-preview/blob/master/LICENSE.txt)
+[![GitHub issues](https://img.shields.io/github/issues/adobe/helix-markdown-preview.svg)](https://github.com/adobe/helix-markdown-preview/issues)
 [![Greenkeeper badge](https://badges.greenkeeper.io/adobe/helix-markdown-preview.svg)](https://greenkeeper.io/)
+[![LGTM Code Quality Grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/adobe/helix-markdown-preview.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/adobe/helix-markdown-preview)
 
 Google Chrome Extension to preview markdown files on GitHub, either static or live as you type. It can have markdown rendered standalone, or using Helix.
 
