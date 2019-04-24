@@ -2,3 +2,9 @@ coverage
 .nyc_output/
 node_modules/
 junit
+doc
+.idea
+.vscode
+.releaserc.js
+test
+.circleci
