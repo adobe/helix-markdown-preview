@@ -34,7 +34,7 @@
     "jsdom": "^15.0.0",
     "mocha": "^6.1.3",
     "mock-browser": "^0.92.14",
-    "nyc": "14.0.0",
+    "nyc": "14.1.0",
     "puppeteer": "^1.14.0",
     "puppeteer-to-istanbul": "^1.2.2",
     "semantic-release": "^15.13.3",
