@@ -12,13 +12,13 @@ Google Chrome Extension to preview markdown files on GitHub, either static or li
 ## 1. Installation
 
 ### 1.1 Developer mode
-1. Clone this repository to your local disk: `git clone https://github.com/rofe/helix-markdown-preview.git`
+1. Download and extract the latest [release](https://github.com/adobe/helix-markdown-preview/releases), or clone this repository to your local disk: `git clone https://github.com/rofe/helix-markdown-preview.git`
 2. Open Chrome and navigate to `chrome://extensions`
 3. Turn on _Developer mode_ at the top right of the header bar<br />
 ![Developer mode](doc/install_developer_mode.png)
 4. Click the _Load unpacked_ button in the action bar<br />
 ![Load unpacked](doc/install_load_unpacked.png)
-5. Navigate to the `src` directory of your local clone and click _Select_ to install and activate the extension
+5. Navigate to the `src` directory of your local copy and click _Select_ to install and activate the extension
 6. Verify if your _Extensions_ page displays a box like this:<br />
 ![Extension box](doc/install_extension_box.png)<br />
    and the tool bar shows a grayed out Helix icon:<br />
