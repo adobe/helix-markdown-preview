@@ -30,7 +30,8 @@ function checkTab(tabId) {
           return;
         }
         // enable extension if markdown editor
-        if (tab.url.match(/^https:\/\/.*github\.com\/.*\/.*\/edit\/.*\.md$/)) {
+        if (tab.url.match(/^https:\/\/.*github\.com\/.*\/.*\/edit\/.*\.md$/)
+          || tab.url.match(/^https:\/\/.*github\.com\/.*\/.*\/new\/.*$/)) {
           chrome.browserAction.enable(tab.id);
           chrome.browserAction.setTitle({ title: 'Click to show live preview', tabId });
           return;
