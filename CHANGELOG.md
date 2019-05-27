@@ -1,3 +1,11 @@
+## [1.1.1](https://github.com/rofe/helix-markdown-preview/compare/v1.1.0...v1.1.1) (2019-05-27)
+
+
+### Bug Fixes
+
+* **preview:** add check for undefined ([ee43eaf](https://github.com/rofe/helix-markdown-preview/commit/ee43eaf)), closes [#41](https://github.com/rofe/helix-markdown-preview/issues/41)
+* **preview:** add check for undefined ([#41](https://github.com/rofe/helix-markdown-preview/issues/41)) ([3f4c708](https://github.com/rofe/helix-markdown-preview/commit/3f4c708))
+
 # [1.1.0](https://github.com/rofe/helix-markdown-preview/compare/v1.0.0...v1.1.0) (2019-05-09)
 
 
