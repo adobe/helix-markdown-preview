@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/rofe/helix-markdown-preview/compare/v1.1.1...v1.1.2) (2019-06-17)
+
+
+### Bug Fixes
+
+* pin @semantic-release/git to 7.0.11 ([7a682d3](https://github.com/rofe/helix-markdown-preview/commit/7a682d3))
+
 ## [1.1.1](https://github.com/rofe/helix-markdown-preview/compare/v1.1.0...v1.1.1) (2019-05-27)
 
 
