@@ -21,7 +21,7 @@
     "@semantic-release/github": "^5.2.10",
     "chai": "^4.2.0",
     "codecov": "3.5.0",
-    "commitizen": "^3.0.7",
+    "commitizen": "^4.0.0",
     "cz-conventional-changelog": "^2.1.0",
     "eslint": "^5.16.0",
     "eslint-config-airbnb": "^17.1.0",
