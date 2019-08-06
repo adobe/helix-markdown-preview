@@ -1,3 +1,10 @@
+## [1.1.3](https://github.com/rofe/helix-markdown-preview/compare/v1.1.2...v1.1.3) (2019-08-06)
+
+
+### Bug Fixes
+
+* **build:** Bump lodash from 4.17.11 to 4.17.15 ([ee5c50a](https://github.com/rofe/helix-markdown-preview/commit/ee5c50a))
+
 ## [1.1.2](https://github.com/rofe/helix-markdown-preview/compare/v1.1.1...v1.1.2) (2019-06-17)
 
 
