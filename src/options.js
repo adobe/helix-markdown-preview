@@ -151,7 +151,7 @@ function populateOptions() {
     buttons[i].addEventListener('click', window[`${buttons[i].id}Action`]);
   }
   // gather helix fields and sections
-  const helixFields = fields.filter(elem => elem.id.startsWith('helix'));
+  const helixFields = fields.filter((elem) => elem.id.startsWith('helix'));
   const helixSections = [];
   helixFields.forEach((field) => {
     helixSections.push(document.getElementById(getStorageKey(field.id)));

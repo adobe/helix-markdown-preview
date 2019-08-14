@@ -74,7 +74,7 @@ class ExtensionTester {
     ];
     this._callback = callback;
     this._activeTab = null;
-    chrome.tabs.onUpdated.addListener(tab => this.handleEvent(tab));
+    chrome.tabs.onUpdated.addListener((tab) => this.handleEvent(tab));
     chrome.tabs.onUpdated.trigger({ url: this._url, id: 1 });
   }
 

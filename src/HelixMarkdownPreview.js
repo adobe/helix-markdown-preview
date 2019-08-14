@@ -25,7 +25,7 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
     const debug = (...msg) => {
       window.console.log(...msg);
     };
-    const getProp = name => chrome.runtime[`${ID}_${name}`];
+    const getProp = (name) => chrome.runtime[`${ID}_${name}`];
     const setProp = (name, value) => {
       if (value) {
         chrome.runtime[`${ID}_${name}`] = value;
@@ -104,7 +104,7 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
         if (!popup || !previewWin) return;
 
         function calcZoom() {
-          const zoom = Math.min(Math.max(Number(1 * popup.innerWidth / 1000).toFixed(1), 0.5), 1);
+          const zoom = Math.min(Math.max(Number((1 * popup.innerWidth) / 1000).toFixed(1), 0.5), 1);
           return zoom;
         }
 
@@ -289,7 +289,7 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
           if (elem.srcset) {
             const srcSet = e.srcset.split(',');
             const newSrcSet = [];
-            srcSet.forEach(src => newSrcSet.push(rewriteLink(src)));
+            srcSet.forEach((src) => newSrcSet.push(rewriteLink(src)));
             e.srcset = newSrcSet.join(',');
           }
         });

@@ -39,7 +39,7 @@ describe('background page (WIP)', () => {
       },
     });
     bgPage.window.chrome = chrome;
-    scripts.forEach(script => bgPage.runVMScript(script));
+    scripts.forEach((script) => bgPage.runVMScript(script));
   });
 
   afterEach(() => {
