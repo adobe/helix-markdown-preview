@@ -1,3 +1,10 @@
+## [1.1.4](https://github.com/rofe/helix-markdown-preview/compare/v1.1.3...v1.1.4) (2019-08-23)
+
+
+### Bug Fixes
+
+* pin @semantic-release/github to 5.4.2 ([58f2f6b](https://github.com/rofe/helix-markdown-preview/commit/58f2f6b))
+
 ## [1.1.3](https://github.com/rofe/helix-markdown-preview/compare/v1.1.2...v1.1.3) (2019-08-06)
 
 
