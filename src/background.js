@@ -57,6 +57,12 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
 chrome.tabs.onUpdated.addListener((tabId) => {
   checkTab(tabId);
 });
+chrome.tabs.onRemoved.addListener((tabId) => {
+  checkTab(tabId);
+  HelixMarkdownPreview.getReceiver((receiver) => {
+    receiver.stop();
+  });
+});
 
 // when the browser action is clicked, toggle the markdown preview
 chrome.browserAction.onClicked.addListener((tab) => {
