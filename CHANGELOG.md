@@ -1,3 +1,11 @@
+## [1.1.5](https://github.com/rofe/helix-markdown-preview/compare/v1.1.4...v1.1.5) (2019-10-17)
+
+
+### Bug Fixes
+
+* **popup:** closes when tab closes ([f625588](https://github.com/rofe/helix-markdown-preview/commit/f625588))
+* **popup:** remove checktab ([3f19585](https://github.com/rofe/helix-markdown-preview/commit/3f19585))
+
 ## [1.1.4](https://github.com/rofe/helix-markdown-preview/compare/v1.1.3...v1.1.4) (2019-08-23)
 
 
