@@ -57,8 +57,7 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
 chrome.tabs.onUpdated.addListener((tabId) => {
   checkTab(tabId);
 });
-chrome.tabs.onRemoved.addListener((tabId) => {
-  checkTab(tabId);
+chrome.tabs.onRemoved.addListener(() => {
   HelixMarkdownPreview.getReceiver((receiver) => {
     receiver.stop();
   });
