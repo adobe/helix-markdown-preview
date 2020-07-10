@@ -22,7 +22,7 @@
     "@semantic-release/github": "5.5.0",
     "chai": "^4.2.0",
     "codecov": "3.6.5",
-    "commitizen": "^4.0.0",
+    "commitizen": "^4.1.2",
     "cz-conventional-changelog": "^3.0.2",
     "eslint": "^6.1.0",
     "eslint-plugin-header": "^3.0.0",
@@ -34,7 +34,7 @@
     "mock-browser": "^0.92.14",
     "nyc": "^15.0.0",
     "puppeteer": "^1.14.0",
-    "puppeteer-to-istanbul": "^1.2.2",
+    "puppeteer-to-istanbul": "^1.4.0",
     "semantic-release": "^15.13.3",
     "sinon": "^7.3.1",
     "sinon-chrome": "^3.0.1"
