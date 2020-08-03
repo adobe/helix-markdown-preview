@@ -79,7 +79,7 @@ describe('background page (WIP)', () => {
   it('keeps browser action disabled and shows tooltip if github markdown (blob view)', () => {
     chrome.tabs.onCreated.trigger({
       id: 1234,
-      url: 'https://github.com/rofe/helix-markdown-preview/blob/master/README.md',
+      url: 'https://github.com/rofe/helix-markdown-preview/blob/main/README.md',
     }, (tab) => {
       sinon.assert.calledOnce(chrome.browserAction.show);
       sinon.assert.calledWith(chrome.browserAction.disable, { id: tab.id });
@@ -90,7 +90,7 @@ describe('background page (WIP)', () => {
   // TODO: callback never called -> evergreen test
   it('enables browser action if github markdown (edit view)', () => {
     chrome.tabs.onCreated.trigger({
-      url: 'https://github.com/rofe/helix-markdown-preview/edit/master/README.md',
+      url: 'https://github.com/rofe/helix-markdown-preview/edit/main/README.md',
     }, (tab) => {
       sinon.assert.calledWith(chrome.browserAction.enable, { id: tab.id });
       sinon.assert.neverCalledWith(chrome.browserAction.disable, { id: tab.id });
@@ -100,7 +100,7 @@ describe('background page (WIP)', () => {
   // TODO: callback never called -> evergreen test
   it('enables browser action if raw github markdown file', () => {
     chrome.tabs.onCreated.trigger({
-      url: 'https://raw.githubusercontent.com/rofe/helix-markdown-preview/master/README.md',
+      url: 'https://raw.githubusercontent.com/rofe/helix-markdown-preview/main/README.md',
     }, (tab) => {
       sinon.assert.calledWith(chrome.browserAction.enable, { id: tab.id });
       sinon.assert.neverCalledWith(chrome.browserAction.disable, { id: tab.id });

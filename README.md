@@ -1,8 +1,8 @@
 # Helix Markdown Preview
 
 [![codecov](https://img.shields.io/codecov/c/github/adobe/helix-markdown-preview.svg)](https://codecov.io/gh/adobe/helix-markdown-preview)
-[![CircleCI](https://img.shields.io/circleci/project/github/adobe/helix-markdown-preview/master.svg)](https://circleci.com/gh/adobe/helix-markdown-preview/tree/master)
-[![GitHub license](https://img.shields.io/github/license/adobe/helix-markdown-preview.svg)](https://github.com/adobe/helix-markdown-preview/blob/master/LICENSE.txt)
+[![CircleCI](https://img.shields.io/circleci/project/github/adobe/helix-markdown-preview/main.svg)](https://circleci.com/gh/adobe/helix-markdown-preview/tree/main)
+[![GitHub license](https://img.shields.io/github/license/adobe/helix-markdown-preview.svg)](https://github.com/adobe/helix-markdown-preview/blob/main/LICENSE.txt)
 [![GitHub issues](https://img.shields.io/github/issues/adobe/helix-markdown-preview.svg)](https://github.com/adobe/helix-markdown-preview/issues)
 
 [![LGTM Code Quality Grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/adobe/helix-markdown-preview.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/adobe/helix-markdown-preview)
@@ -31,7 +31,7 @@ Stay tuned...
 ## 2. Usage
 
 ### 2.1 Static preview
-1. Navigate to any markdown (\*.md) file on GitHub, like [this one](https://github.com/adobe/project-helix.io/blob/master/index.md) for example.
+1. Navigate to any markdown (\*.md) file on GitHub, like [this one](https://github.com/adobe/project-helix.io/blob/main/index.md) for example.
 2. Click the _Raw_ button. Notice how the Helix icon in the toolbar is colored now:<br />
 ![Extension icon enabled](src/images/helix_logo_16.png)
 3. Click it.

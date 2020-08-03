@@ -19,7 +19,7 @@ const pti = require('puppeteer-to-istanbul');
 const path = require('path');
 const { assert } = require('chai');
 
-const testUrlRaw = 'https://raw.githubusercontent.com/rofe/helix-markdown-preview/master/README.md';
+const testUrlRaw = 'https://raw.githubusercontent.com/rofe/helix-markdown-preview/main/README.md';
 const extensionPath = path.join(__dirname, '../../src');
 const allCoverage = [];
 const manifest = JSON.parse(fs.readFileSync(path.join(extensionPath, '/manifest.json')));

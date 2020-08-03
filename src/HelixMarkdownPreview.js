@@ -44,7 +44,7 @@ if (typeof window.HelixMarkdownPreview === 'undefined') {
         hostEquals: 'raw.githubusercontent.com',
         pathSuffix: '.md',
       }],
-      gitBranch: 'master',
+      gitBranch: 'main',
       helixRendering: false,
       helixBaseUrl: null,
       pollInterval: 500,
