@@ -21,8 +21,8 @@ const { assert } = require('chai');
 const { JSDOM } = require('jsdom');
 const { Script } = require('vm');
 
-// const testUrlRaw = 'https://raw.githubusercontent.com/rofe/helix-markdown-preview/master/README.md';
-const testUrlEdit = 'https://github.com/rofe/helix-markdown-preview/edit/master/README.md';
+// const testUrlRaw = 'https://raw.githubusercontent.com/rofe/helix-markdown-preview/main/README.md';
+const testUrlEdit = 'https://github.com/rofe/helix-markdown-preview/edit/main/README.md';
 
 describe('content page (WIP)', () => {
   let window;
